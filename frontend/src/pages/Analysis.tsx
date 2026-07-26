@@ -14,6 +14,7 @@ import { PerformanceScore } from '../components/PerformanceScore'
 import { MarketBenchmarkCard } from '../components/MarketBenchmarkCard'
 import { ObjectiveFitCard } from '../components/ObjectiveFitCard'
 import { CorrectionForm } from '../components/CorrectionForm'
+import { exportElementToPdf } from '../lib/exportPdf'
 
 export function Analysis() {
   const { id } = useParams<{ id: string }>()
@@ -21,7 +22,9 @@ export function Analysis() {
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [corrected, setCorrected] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const reportRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!id) return
@@ -88,6 +91,16 @@ export function Analysis() {
     setEditing(false)
   }
 
+  async function handleExportPdf() {
+    if (!reportRef.current) return
+    setExporting(true)
+    try {
+      await exportElementToPdf(reportRef.current, `ryber-analise-${id}.pdf`)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="min-h-full flex flex-col">
       <Header
@@ -116,12 +129,21 @@ export function Analysis() {
               <span />
             )}
             {!editing && (
-              <button
-                onClick={() => setEditing(true)}
-                className="text-sm text-ink-soft hover:text-accent underline underline-offset-2"
-              >
-                Corrigir leitura
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleExportPdf}
+                  disabled={exporting}
+                  className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 disabled:opacity-60"
+                >
+                  {exporting ? 'Gerando PDF...' : 'Exportar PDF'}
+                </button>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="text-sm text-ink-soft hover:text-accent underline underline-offset-2"
+                >
+                  Corrigir leitura
+                </button>
+              </div>
             )}
           </div>
 
@@ -132,7 +154,7 @@ export function Analysis() {
               onCancel={() => setEditing(false)}
             />
           ) : (
-            <>
+            <div ref={reportRef} className="space-y-6 bg-canvas">
               <SectionHeading eyebrow="Diagnóstico de performance" />
               <div className="space-y-4">
                 {result.market_benchmark && <MarketBenchmarkCard benchmark={result.market_benchmark} />}
@@ -168,7 +190,7 @@ export function Analysis() {
                   <BriefingCompat compat={result.briefing_compatibility} />
                 </>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>
