@@ -18,7 +18,7 @@ export function Signup() {
     setLoading(true)
     try {
       await signup(email, password, inviteCode)
-      navigate('/')
+      navigate('/app')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível criar a conta.')
     } finally {

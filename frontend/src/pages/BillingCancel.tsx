@@ -10,7 +10,7 @@ export function BillingCancel() {
           <div className="text-2xl font-medium">Assinatura cancelada</div>
           <p className="text-ink-soft text-sm">Nenhuma cobrança foi feita.</p>
           <Link
-            to="/"
+            to="/app"
             className="inline-block mt-4 rounded-full bg-accent text-white px-5 py-2.5 text-sm font-medium"
           >
             Voltar para o início

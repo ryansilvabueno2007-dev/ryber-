@@ -93,7 +93,7 @@ export function Analysis() {
       <Header
         right={
           <Link
-            to="/"
+            to="/app"
             className="text-sm font-medium text-ink-soft hover:text-accent transition-colors"
           >
             + Nova análise

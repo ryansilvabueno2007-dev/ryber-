@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Landing } from './pages/Landing'
 import { Home } from './pages/Home'
 import { Analysis } from './pages/Analysis'
 import { Login } from './pages/Login'
@@ -16,10 +17,11 @@ function App() {
       <AuthProvider>
         <ErrorBoundary>
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route
-              path="/"
+              path="/app"
               element={
                 <ProtectedRoute>
                   <Home />

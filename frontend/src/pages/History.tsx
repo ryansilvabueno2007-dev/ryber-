@@ -35,7 +35,7 @@ export function History() {
         {items !== null && items.length === 0 && (
           <p className="text-ink-soft text-sm">
             Nenhuma análise ainda.{' '}
-            <Link to="/" className="text-accent hover:underline">
+            <Link to="/app" className="text-accent hover:underline">
               Analisar um criativo
             </Link>
           </p>
