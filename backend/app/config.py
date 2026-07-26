@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     session_cookie_secure: bool = True
     signup_invite_code: str = ""
 
+    # E-mails (separados por vírgula) promovidos a admin automaticamente na
+    # inicialização — permite dar acesso de admin sem precisar de shell no servidor.
+    admin_emails: str = ""
+
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
     stripe_price_id: str = ""
