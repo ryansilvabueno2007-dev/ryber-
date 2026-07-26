@@ -1,0 +1,146 @@
+import json
+from pathlib import Path
+
+from app.config import settings
+from app.db import SessionLocal
+from app.db_models import Analysis
+from app.models import AnalysisResult, AnalysisStatus
+
+DATA_DIR = Path(settings.data_dir)
+UPLOADS_DIR = DATA_DIR / "uploads"
+RAW_DIR = DATA_DIR / "raw"
+
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+RAW_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def upload_path(analysis_id: str, suffix: str = ".mp4") -> Path:
+    return UPLOADS_DIR / f"{analysis_id}{suffix}"
+
+
+def raw_dir(analysis_id: str) -> Path:
+    """Pasta persistida com os frames extraídos e a transcrição de uma análise.
+
+    Isso não é apagado após o processamento: é a matéria-prima (input) que, junto
+    com a correção humana (o "gabarito"), forma um exemplo de treino para um
+    futuro modelo próprio.
+    """
+    d = RAW_DIR / analysis_id
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def create_analysis(analysis_id: str, user_id: str | None) -> None:
+    with SessionLocal() as db:
+        db.add(Analysis(id=analysis_id, user_id=user_id, stage="reading", detail=""))
+        db.commit()
+
+
+def get_owner(analysis_id: str) -> str | None:
+    """user_id dono da análise, ou None se a análise não existir."""
+    with SessionLocal() as db:
+        row = db.get(Analysis, analysis_id)
+        return row.user_id if row else None
+
+
+def set_status(analysis_id: str, stage: str, detail: str = "", error: str | None = None) -> None:
+    with SessionLocal() as db:
+        row = db.get(Analysis, analysis_id)
+        if row is None:
+            return
+        row.stage = stage
+        row.detail = detail
+        row.error = error
+        db.commit()
+
+
+def get_status(analysis_id: str) -> AnalysisStatus | None:
+    with SessionLocal() as db:
+        row = db.get(Analysis, analysis_id)
+        if row is None:
+            return None
+        return AnalysisStatus(id=row.id, stage=row.stage, detail=row.detail, error=row.error)
+
+
+def save_result(analysis_id: str, result: AnalysisResult) -> None:
+    with SessionLocal() as db:
+        row = db.get(Analysis, analysis_id)
+        if row is None:
+            return
+        row.media_type = result.media_type
+        row.result_json = json.loads(result.model_dump_json())
+        db.commit()
+
+
+def load_result(analysis_id: str) -> AnalysisResult | None:
+    with SessionLocal() as db:
+        row = db.get(Analysis, analysis_id)
+        if row is None or row.result_json is None:
+            return None
+        return AnalysisResult.model_validate(row.result_json)
+
+
+def save_correction(analysis_id: str, result: AnalysisResult) -> None:
+    with SessionLocal() as db:
+        row = db.get(Analysis, analysis_id)
+        if row is None:
+            return
+        row.correction_json = json.loads(result.model_dump_json())
+        db.commit()
+
+
+def load_correction(analysis_id: str) -> AnalysisResult | None:
+    with SessionLocal() as db:
+        row = db.get(Analysis, analysis_id)
+        if row is None or row.correction_json is None:
+            return None
+        return AnalysisResult.model_validate(row.correction_json)
+
+
+def save_transcript(analysis_id: str, transcript: list[dict]) -> None:
+    (raw_dir(analysis_id) / "transcript.json").write_text(
+        json.dumps(transcript, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
+
+def find_upload(analysis_id: str) -> Path | None:
+    matches = list(UPLOADS_DIR.glob(f"{analysis_id}.*"))
+    return matches[0] if matches else None
+
+
+def list_analyses(user_id: str, limit: int = 50, offset: int = 0) -> list[dict]:
+    with SessionLocal() as db:
+        rows = (
+            db.query(Analysis)
+            .filter(Analysis.user_id == user_id)
+            .order_by(Analysis.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+        summaries = []
+        for row in rows:
+            product = None
+            if row.result_json:
+                product = (row.result_json.get("product") or {}).get("name")
+            summaries.append(
+                {
+                    "id": row.id,
+                    "media_type": row.media_type,
+                    "stage": row.stage,
+                    "product": product,
+                    "created_at": row.created_at.isoformat() if row.created_at else None,
+                }
+            )
+        return summaries
+
+
+def list_trainable_ids() -> list[str]:
+    """IDs que têm tanto o resultado original quanto uma correção humana."""
+    with SessionLocal() as db:
+        rows = (
+            db.query(Analysis.id)
+            .filter(Analysis.result_json.isnot(None), Analysis.correction_json.isnot(None))
+            .all()
+        )
+        return [r[0] for r in rows]

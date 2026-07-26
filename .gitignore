@@ -1,0 +1,17 @@
+backend/.venv/
+backend/.env
+backend/data/uploads/*
+backend/data/analyses/*
+backend/data/raw/*
+backend/data/training_export.jsonl
+backend/data/*.db
+backend/data/*.db-journal
+!backend/data/uploads/.gitkeep
+!backend/data/analyses/.gitkeep
+!backend/data/raw/.gitkeep
+backend/__pycache__/
+backend/**/__pycache__/
+
+frontend/node_modules/
+frontend/dist/
+frontend/.env
