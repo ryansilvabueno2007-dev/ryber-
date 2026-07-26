@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ScoreGauge } from '../components/ScoreGauge'
 import { ConfidenceBar } from '../components/ConfidenceBar'
@@ -11,7 +11,26 @@ import { MarketBenchmarkCard } from '../components/MarketBenchmarkCard'
 import { PerformanceScore } from '../components/PerformanceScore'
 import { ObjectiveFitCard } from '../components/ObjectiveFitCard'
 import { BriefingCompat } from '../components/BriefingCompat'
+import { useAuth } from '../context/AuthContext'
+import { createCheckoutSession } from '../api/client'
 import type { AnalysisResult } from '../types'
+
+interface Plan {
+  id: string
+  name: string
+  price: number
+  quota: string
+}
+
+const PLANS: Plan[] = [
+  { id: 'start', name: 'Ryber Start', price: 97, quota: '30 vídeos/imagens por mês' },
+  { id: 'platinum', name: 'Ryber Platinum', price: 197, quota: '60 vídeos/imagens por mês' },
+  { id: 'gold', name: 'Ryber Gold', price: 297, quota: '100 vídeos/imagens por mês' },
+]
+
+function formatBRL(value: number): string {
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
 
 const EXAMPLE_RESULT: AnalysisResult = {
   media_type: 'video',
@@ -264,6 +283,65 @@ function PersonaSection({
   )
 }
 
+function PlanCard({ plan, highlight }: { plan: Plan; highlight?: boolean }) {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleClick() {
+    if (!user) {
+      navigate('/signup')
+      return
+    }
+    setError(null)
+    setLoading(true)
+    try {
+      const { url } = await createCheckoutSession(plan.id)
+      window.location.href = url
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível abrir o checkout.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div
+      className={`rounded-2xl border bg-panel shadow-elevated text-left overflow-hidden flex flex-col ${
+        highlight ? 'border-accent ring-2 ring-accent-soft' : 'border-line'
+      }`}
+    >
+      <div className="bg-ink px-6 py-5">
+        <div className="text-[11px] font-medium uppercase tracking-wide text-white/60 mb-1.5">{plan.name}</div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl font-semibold tracking-tight text-white">R$ {formatBRL(plan.price)}</span>
+          <span className="text-sm text-white/60">/mês</span>
+        </div>
+      </div>
+      <div className="p-6 flex flex-col flex-1">
+        <ul className="space-y-2.5 mb-6 text-sm flex-1">
+          {[plan.quota, 'Histórico completo de análises', 'Benchmark de mercado e nota de performance', 'Compatibilidade com briefing'].map(
+            (line) => (
+              <li key={line} className="flex items-start gap-2 text-ink-soft">
+                <Icon path={ICONS.check} />
+                {line}
+              </li>
+            )
+          )}
+        </ul>
+        {error && <p className="text-danger text-xs mb-3">{error}</p>}
+        <button
+          onClick={handleClick}
+          disabled={loading}
+          className="block text-center rounded-full bg-accent text-white px-5 py-3 font-medium uppercase tracking-wide text-xs shadow-card hover:shadow-card-hover hover:bg-accent-strong transition-all disabled:opacity-60"
+        >
+          {loading ? 'Abrindo...' : 'Assinar'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function AnnouncementBar({ onClose }: { onClose: () => void }) {
   return (
     <div className="bg-ink text-white text-xs">
@@ -474,44 +552,19 @@ export function Landing() {
 
       {/* Assinatura */}
       <section id="precos" className="px-4 sm:px-6 py-12 sm:py-16 border-t border-line/70 scroll-mt-14">
-        <div className="max-w-md mx-auto text-center">
+        <div className="max-w-5xl mx-auto text-center">
           <div className="text-xs font-semibold uppercase tracking-wider text-accent mb-3">Assinatura</div>
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-2.5">
-            Uma assinatura, análises ilimitadas
+            Escolha o plano pelo seu volume de criativos
           </h2>
-          <p className="text-ink-soft text-sm sm:text-base mb-8 leading-relaxed">
-            Sem pacote de créditos pra controlar. Enquanto sua assinatura estiver ativa, analise quantos
-            criativos precisar.
+          <p className="text-ink-soft text-sm sm:text-base mb-10 leading-relaxed max-w-lg mx-auto">
+            Sem pacote de créditos avulso — cada plano dá um número de análises por mês. Cancele quando
+            quiser.
           </p>
-          <div className="rounded-2xl border border-line bg-panel shadow-elevated text-left overflow-hidden">
-            <div className="bg-ink px-6 py-5">
-              <div className="text-[11px] font-medium uppercase tracking-wide text-white/60 mb-1.5">Ryber</div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-semibold tracking-tight text-white">R$ --</span>
-                <span className="text-sm text-white/60">/mês</span>
-              </div>
-            </div>
-            <div className="p-6">
-              <ul className="space-y-2.5 mb-6 text-sm">
-                {[
-                  'Análises ilimitadas de vídeo e imagem',
-                  'Histórico completo de análises',
-                  'Benchmark de mercado e nota de performance',
-                  'Compatibilidade com briefing',
-                ].map((line) => (
-                  <li key={line} className="flex items-start gap-2 text-ink-soft">
-                    <Icon path={ICONS.check} />
-                    {line}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                to="/signup"
-                className="block text-center rounded-full bg-accent text-white px-5 py-3 font-medium uppercase tracking-wide text-xs shadow-card hover:shadow-card-hover hover:bg-accent-strong transition-all"
-              >
-                Criar conta
-              </Link>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+            {PLANS.map((plan) => (
+              <PlanCard key={plan.id} plan={plan} highlight={plan.id === 'platinum'} />
+            ))}
           </div>
         </div>
       </section>

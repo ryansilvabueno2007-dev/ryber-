@@ -28,7 +28,9 @@ class Settings(BaseSettings):
 
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
-    stripe_price_id: str = ""
+    stripe_price_id_start: str = ""
+    stripe_price_id_platinum: str = ""
+    stripe_price_id_gold: str = ""
     frontend_url: str = "http://localhost:5173"
 
 

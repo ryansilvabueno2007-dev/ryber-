@@ -97,6 +97,7 @@ export interface CurrentUser {
   email: string
   is_subscribed: boolean
   is_admin: boolean
+  plan: string | null
 }
 
 export interface AdminStats {
@@ -110,6 +111,7 @@ export interface AdminUser {
   email: string
   is_admin: boolean
   is_subscribed: boolean
+  plan: string | null
   created_at: string
   analyses_count: number
 }

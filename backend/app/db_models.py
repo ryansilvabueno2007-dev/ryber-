@@ -24,6 +24,7 @@ class User(Base):
     is_admin = Column(Boolean, nullable=False, default=False)
     stripe_customer_id = Column(String, nullable=True)
     is_subscribed = Column(Boolean, nullable=False, default=False)
+    plan = Column(String, nullable=True)  # "start" | "platinum" | "gold"
     created_at = Column(DateTime(timezone=True), default=_now)
 
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")

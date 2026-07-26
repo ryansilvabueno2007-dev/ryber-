@@ -1,26 +1,14 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { createCheckoutSession } from '../api/client'
 
 export function Header({ right }: { right?: ReactNode }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [subscribing, setSubscribing] = useState(false)
 
   async function handleLogout() {
     await logout()
     navigate('/login')
-  }
-
-  async function handleSubscribe() {
-    setSubscribing(true)
-    try {
-      const { url } = await createCheckoutSession()
-      window.location.href = url
-    } catch {
-      setSubscribing(false)
-    }
   }
 
   return (
@@ -51,13 +39,12 @@ export function Header({ right }: { right?: ReactNode }) {
                 </Link>
               )}
               {!user.is_subscribed && (
-                <button
-                  onClick={handleSubscribe}
-                  disabled={subscribing}
-                  className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-card disabled:opacity-60 whitespace-nowrap"
+                <Link
+                  to="/#precos"
+                  className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-card whitespace-nowrap"
                 >
-                  {subscribing ? 'Abrindo...' : 'Assinar'}
-                </button>
+                  Assinar
+                </Link>
               )}
               <button
                 onClick={handleLogout}

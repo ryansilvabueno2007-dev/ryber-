@@ -26,6 +26,7 @@ class UserResponse(BaseModel):
     email: str
     is_subscribed: bool
     is_admin: bool
+    plan: str | None
 
 
 def _set_session_cookie(response: Response, token: str) -> None:
@@ -58,7 +59,9 @@ async def signup(payload: SignupRequest, response: Response, db: DBSession = Dep
 
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
-    return UserResponse(id=user.id, email=user.email, is_subscribed=user.is_subscribed, is_admin=user.is_admin)
+    return UserResponse(
+        id=user.id, email=user.email, is_subscribed=user.is_subscribed, is_admin=user.is_admin, plan=user.plan
+    )
 
 
 @router.post("/login", response_model=UserResponse)
@@ -69,7 +72,9 @@ async def login(payload: LoginRequest, response: Response, db: DBSession = Depen
 
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
-    return UserResponse(id=user.id, email=user.email, is_subscribed=user.is_subscribed, is_admin=user.is_admin)
+    return UserResponse(
+        id=user.id, email=user.email, is_subscribed=user.is_subscribed, is_admin=user.is_admin, plan=user.plan
+    )
 
 
 @router.post("/logout")
@@ -86,4 +91,6 @@ async def logout(
 
 @router.get("/me", response_model=UserResponse)
 async def me(user: User = Depends(auth.require_user)) -> UserResponse:
-    return UserResponse(id=user.id, email=user.email, is_subscribed=user.is_subscribed, is_admin=user.is_admin)
+    return UserResponse(
+        id=user.id, email=user.email, is_subscribed=user.is_subscribed, is_admin=user.is_admin, plan=user.plan
+    )

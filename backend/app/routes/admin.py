@@ -20,6 +20,7 @@ class AdminUser(BaseModel):
     email: str
     is_admin: bool
     is_subscribed: bool
+    plan: str | None
     created_at: str
     analyses_count: int
 
@@ -50,6 +51,7 @@ async def list_users() -> list[AdminUser]:
                 email=u.email,
                 is_admin=u.is_admin,
                 is_subscribed=u.is_subscribed,
+                plan=u.plan,
                 created_at=u.created_at.isoformat() if u.created_at else "",
                 analyses_count=counts.get(u.id, 0),
             )
