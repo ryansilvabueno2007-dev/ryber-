@@ -41,10 +41,18 @@ pip install -r requirements.txt
 copy .env.example .env
 ```
 
-Edite `backend/.env` e cole sua key:
+Edite `backend/.env` e cole sua key, e defina um `SIGNUP_INVITE_CODE` (é exigido no cadastro — a
+plataforma não tem cadastro aberto):
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
+SIGNUP_INVITE_CODE=escolha-um-codigo
+```
+
+Rode a migração do banco (cria as tabelas em `data/ryber.db`):
+
+```
+alembic upgrade head
 ```
 
 ### Frontend
@@ -81,12 +89,32 @@ Acesse http://localhost:5173
 
 ## Notas
 
-- Não há banco de dados no MVP: cada análise vira um arquivo JSON em `backend/data/analyses/` e o vídeo fica em
-  `backend/data/uploads/`.
+- Login é obrigatório em toda a plataforma. Cadastro exige `SIGNUP_INVITE_CODE`; alternativa sem convite:
+  `python scripts/create_user.py <email> <senha>` (dentro de `backend/`, venv ativo).
+- Banco de dados real (SQLite local, Postgres em produção) via SQLAlchemy + Alembic — cada análise é uma linha
+  na tabela `analyses`, vinculada ao `user_id` do dono. Os vídeos e frames extraídos continuam em disco
+  (`backend/data/uploads/`, `backend/data/raw/`), não no banco.
 - O primeiro carregamento do modelo Whisper local baixa os pesos automaticamente (uma vez só).
 - Colar um link (YouTube, TikTok, Instagram etc.) usa `yt-dlp` para baixar o vídeo antes de processar.
 - Frontend e backend são independentes e falam por HTTP — dá para publicar o backend (Render/Railway) e o
   frontend (Vercel) separadamente mais adiante, só ajustando `VITE_API_BASE_URL` e `CORS_ORIGIN`.
+
+## Deploy (Render)
+
+`render.yaml` já define os três serviços (backend Docker, frontend estático, Postgres) no **tier gratuito**.
+Passos manuais que só você pode fazer (exigem sua conta):
+
+1. Criar um repositório no GitHub e dar `git push` (o repositório local já existe, só falta o remoto).
+2. No Render, criar um "Blueprint" apontando pro repositório — ele lê o `render.yaml` automaticamente.
+3. Preencher no painel do Render as variáveis marcadas `sync: false` no `render.yaml` (API keys, `CORS_ORIGIN`
+   com a URL real do frontend, `FRONTEND_URL`, etc.) — nunca vão para o repositório.
+4. Criar uma conta de teste no [Stripe](https://dashboard.stripe.com) (modo teste) pra pegar
+   `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` e configurar o webhook (`STRIPE_WEBHOOK_SECRET`) apontando pra
+   `https://<seu-backend>.onrender.com/api/billing/webhook`.
+
+**Lembrete crítico:** o Postgres gratuito do Render é apagado automaticamente após 30 dias, e sem disco
+persistente (que exige plano pago) os vídeos brutos em disco podem se perder a qualquer reinício mesmo antes
+disso. Migre banco + backend pro plano Starter (com disco persistente) antes desse prazo.
 
 ## Construindo sua própria IA (dados de treino)
 
