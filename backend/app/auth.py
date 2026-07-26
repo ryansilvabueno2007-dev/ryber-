@@ -61,3 +61,9 @@ def require_user(user: User | None = Depends(get_current_user)) -> User:
     if user is None:
         raise HTTPException(401, "Não autenticado.")
     return user
+
+
+def require_admin(user: User = Depends(require_user)) -> User:
+    if not user.is_admin:
+        raise HTTPException(404)
+    return user

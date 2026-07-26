@@ -1,4 +1,4 @@
-import type { AnalysisResult, AnalysisStatus, AnalysisSummary, CurrentUser } from '../types'
+import type { AdminStats, AdminUser, AnalysisResult, AnalysisStatus, AnalysisSummary, CurrentUser } from '../types'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
@@ -88,6 +88,16 @@ export function mediaUrl(id: string): string {
 export async function getCorrection(id: string): Promise<AnalysisResult | null> {
   const res = await fetch(`${BASE_URL}/api/analyses/${id}/correction`, { credentials: 'include' })
   if (res.status === 404) return null
+  return asJson(res)
+}
+
+export async function getAdminStats(): Promise<AdminStats> {
+  const res = await fetch(`${BASE_URL}/api/admin/stats`, { credentials: 'include' })
+  return asJson(res)
+}
+
+export async function getAdminUsers(): Promise<AdminUser[]> {
+  const res = await fetch(`${BASE_URL}/api/admin/users`, { credentials: 'include' })
   return asJson(res)
 }
 

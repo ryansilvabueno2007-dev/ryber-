@@ -7,6 +7,7 @@ import { Signup } from './pages/Signup'
 import { History } from './pages/History'
 import { BillingSuccess } from './pages/BillingSuccess'
 import { BillingCancel } from './pages/BillingCancel'
+import { Admin } from './pages/Admin'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
@@ -57,6 +58,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <BillingCancel />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Admin />
                 </ProtectedRoute>
               }
             />

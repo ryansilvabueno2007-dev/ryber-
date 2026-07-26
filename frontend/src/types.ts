@@ -96,4 +96,20 @@ export interface CurrentUser {
   id: string
   email: string
   is_subscribed: boolean
+  is_admin: boolean
+}
+
+export interface AdminStats {
+  total_users: number
+  subscribed_users: number
+  total_analyses: number
+}
+
+export interface AdminUser {
+  id: string
+  email: string
+  is_admin: boolean
+  is_subscribed: boolean
+  created_at: string
+  analyses_count: number
 }

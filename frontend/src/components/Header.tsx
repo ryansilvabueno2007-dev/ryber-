@@ -42,6 +42,14 @@ export function Header({ right }: { right?: ReactNode }) {
               >
                 Histórico
               </Link>
+              {user.is_admin && (
+                <Link
+                  to="/admin"
+                  className="hidden sm:inline-block text-sm font-medium text-ink-soft hover:text-accent transition-colors whitespace-nowrap"
+                >
+                  Admin
+                </Link>
+              )}
               {!user.is_subscribed && (
                 <button
                   onClick={handleSubscribe}
