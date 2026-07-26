@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { getStatus, getAnalysis, getCorrection, saveCorrection, mediaUrl } from '../api/client'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import {
+  getStatus,
+  getAnalysis,
+  getCorrection,
+  saveCorrection,
+  mediaUrl,
+  getComparison,
+  createComparison,
+} from '../api/client'
 import type { AnalysisResult, AnalysisStatus } from '../types'
 import { Header } from '../components/Header'
 import { SectionHeading } from '../components/SectionHeading'
@@ -18,13 +26,18 @@ import { exportElementToPdf } from '../lib/exportPdf'
 
 export function Analysis() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [status, setStatus] = useState<AnalysisStatus | null>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [corrected, setCorrected] = useState(false)
   const [editing, setEditing] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [hasComparison, setHasComparison] = useState(false)
+  const [uploadingCompare, setUploadingCompare] = useState(false)
+  const [compareError, setCompareError] = useState<string | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const reportRef = useRef<HTMLDivElement>(null)
+  const compareInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!id) return
@@ -56,6 +69,13 @@ export function Analysis() {
       if (pollRef.current) clearInterval(pollRef.current)
     }
   }, [id])
+
+  useEffect(() => {
+    if (!id || status?.stage !== 'done') return
+    getComparison(id)
+      .then((comparison) => setHasComparison(comparison !== null))
+      .catch(() => setHasComparison(false))
+  }, [id, status?.stage])
 
   if (!id) return null
 
@@ -89,6 +109,21 @@ export function Analysis() {
     setResult(saved)
     setCorrected(true)
     setEditing(false)
+  }
+
+  async function handleCompareFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !id) return
+    setCompareError(null)
+    setUploadingCompare(true)
+    try {
+      const { id: newId } = await createComparison(id, { file })
+      navigate(`/analysis/${newId}/compare`)
+    } catch (err) {
+      setCompareError(err instanceof Error ? err.message : 'Falha ao enviar a nova versão.')
+      setUploadingCompare(false)
+    }
   }
 
   async function handleExportPdf() {
@@ -137,6 +172,31 @@ export function Analysis() {
                 >
                   {exporting ? 'Gerando PDF...' : 'Exportar PDF'}
                 </button>
+                {hasComparison ? (
+                  <Link
+                    to={`/analysis/${id}/compare`}
+                    className="text-sm text-ink-soft hover:text-accent underline underline-offset-2"
+                  >
+                    Ver antes/depois
+                  </Link>
+                ) : (
+                  <>
+                    <input
+                      ref={compareInputRef}
+                      type="file"
+                      accept="video/*,image/*"
+                      className="hidden"
+                      onChange={handleCompareFileSelected}
+                    />
+                    <button
+                      onClick={() => compareInputRef.current?.click()}
+                      disabled={uploadingCompare}
+                      className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 disabled:opacity-60"
+                    >
+                      {uploadingCompare ? 'Enviando nova versão...' : 'Comparar com nova versão'}
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => setEditing(true)}
                   className="text-sm text-ink-soft hover:text-accent underline underline-offset-2"
@@ -146,6 +206,7 @@ export function Analysis() {
               </div>
             )}
           </div>
+          {compareError && <p className="text-danger text-sm">{compareError}</p>}
 
           {editing ? (
             <CorrectionForm

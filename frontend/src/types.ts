@@ -84,6 +84,13 @@ export interface AnalysisStatus {
   error: string | null
 }
 
+export interface ComparisonResponse {
+  before_id: string
+  after_id: string
+  before: AnalysisResult
+  after: AnalysisResult
+}
+
 export interface AnalysisSummary {
   id: string
   media_type: 'video' | 'image' | null

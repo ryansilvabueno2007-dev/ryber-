@@ -48,6 +48,7 @@ class Analysis(Base):
 
     id = Column(String, primary_key=True)
     user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    compared_to_id = Column(String, ForeignKey("analyses.id"), nullable=True)
     media_type = Column(String, nullable=True)
     stage = Column(String, nullable=False, default="reading")
     detail = Column(String, nullable=False, default="")

@@ -8,6 +8,7 @@ import { History } from './pages/History'
 import { BillingSuccess } from './pages/BillingSuccess'
 import { BillingCancel } from './pages/BillingCancel'
 import { Admin } from './pages/Admin'
+import { Comparison } from './pages/Comparison'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
@@ -66,6 +67,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analysis/:id/compare"
+              element={
+                <ProtectedRoute>
+                  <Comparison />
                 </ProtectedRoute>
               }
             />

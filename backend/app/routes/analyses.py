@@ -9,7 +9,13 @@ from app import storage
 from app.auth import require_user
 from app.config import settings
 from app.db_models import User
-from app.models import AnalysisResult, AnalysisStatus, AnalysisSummary, CreateAnalysisResponse
+from app.models import (
+    AnalysisResult,
+    AnalysisStatus,
+    AnalysisSummary,
+    ComparisonResponse,
+    CreateAnalysisResponse,
+)
 from app.pipeline import downloader, runner
 from app.pipeline.executor import executor
 from app.rate_limit import limiter
@@ -24,15 +30,13 @@ def _require_owned(analysis_id: str, user: User) -> None:
         raise HTTPException(404, "Análise não encontrada.")
 
 
-@router.post("/analyses", response_model=CreateAnalysisResponse)
-@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
-async def create_analysis(
-    request: Request,
-    file: Optional[UploadFile] = File(None),
-    link: Optional[str] = Form(None),
-    briefing: Optional[str] = Form(None),
-    user: User = Depends(require_user),
-) -> CreateAnalysisResponse:
+def _start_analysis(
+    file: Optional[UploadFile],
+    link: Optional[str],
+    briefing: Optional[str],
+    user_id: str,
+    compared_to_id: Optional[str] = None,
+) -> str:
     if not file and not link:
         raise HTTPException(400, "Envie um arquivo de vídeo ou um link.")
 
@@ -47,12 +51,57 @@ async def create_analysis(
             video_path.unlink(missing_ok=True)
             raise HTTPException(413, f"Arquivo maior que {settings.max_upload_mb}MB.")
 
-    storage.create_analysis(analysis_id, user.id)
+    storage.create_analysis(analysis_id, user_id, compared_to_id=compared_to_id)
     storage.set_status(analysis_id, "reading", "Preparando vídeo")
 
     executor.submit(runner.run_full, analysis_id, video_path, link, briefing)
 
+    return analysis_id
+
+
+@router.post("/analyses", response_model=CreateAnalysisResponse)
+@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
+async def create_analysis(
+    request: Request,
+    file: Optional[UploadFile] = File(None),
+    link: Optional[str] = Form(None),
+    briefing: Optional[str] = Form(None),
+    user: User = Depends(require_user),
+) -> CreateAnalysisResponse:
+    analysis_id = _start_analysis(file, link, briefing, user.id)
     return CreateAnalysisResponse(id=analysis_id)
+
+
+@router.post("/analyses/{analysis_id}/compare", response_model=CreateAnalysisResponse)
+@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
+async def create_comparison(
+    request: Request,
+    analysis_id: str,
+    file: Optional[UploadFile] = File(None),
+    link: Optional[str] = Form(None),
+    briefing: Optional[str] = Form(None),
+    user: User = Depends(require_user),
+) -> CreateAnalysisResponse:
+    """Sobe uma nova versão do criativo (o "depois"), vinculada a uma análise já existente (o "antes")."""
+    _require_owned(analysis_id, user)
+    new_id = _start_analysis(file, link, briefing, user.id, compared_to_id=analysis_id)
+    return CreateAnalysisResponse(id=new_id)
+
+
+@router.get("/analyses/{analysis_id}/comparison", response_model=ComparisonResponse)
+async def get_comparison(analysis_id: str, user: User = Depends(require_user)) -> ComparisonResponse:
+    _require_owned(analysis_id, user)
+    pair = storage.get_comparison_pair(analysis_id)
+    if pair is None:
+        raise HTTPException(404, "Nenhuma comparação encontrada para esta análise.")
+    before_id, after_id = pair
+
+    before = storage.load_result(before_id)
+    after = storage.load_result(after_id)
+    if before is None or after is None:
+        raise HTTPException(404, "Uma das análises da comparação ainda não está pronta.")
+
+    return ComparisonResponse(before_id=before_id, after_id=after_id, before=before, after=after)
 
 
 @router.get("/analyses", response_model=list[AnalysisSummary])

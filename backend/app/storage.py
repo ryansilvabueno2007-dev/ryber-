@@ -30,9 +30,13 @@ def raw_dir(analysis_id: str) -> Path:
     return d
 
 
-def create_analysis(analysis_id: str, user_id: str | None) -> None:
+def create_analysis(analysis_id: str, user_id: str | None, compared_to_id: str | None = None) -> None:
     with SessionLocal() as db:
-        db.add(Analysis(id=analysis_id, user_id=user_id, stage="reading", detail=""))
+        db.add(
+            Analysis(
+                id=analysis_id, user_id=user_id, compared_to_id=compared_to_id, stage="reading", detail=""
+            )
+        )
         db.commit()
 
 
@@ -41,6 +45,23 @@ def get_owner(analysis_id: str) -> str | None:
     with SessionLocal() as db:
         row = db.get(Analysis, analysis_id)
         return row.user_id if row else None
+
+
+def get_comparison_pair(analysis_id: str) -> tuple[str, str] | None:
+    """Resolve o par (before_id, after_id) de uma comparação, a partir de qualquer um dos dois lados.
+
+    Retorna None se essa análise não faz parte de nenhuma comparação ainda.
+    """
+    with SessionLocal() as db:
+        row = db.get(Analysis, analysis_id)
+        if row is None:
+            return None
+        if row.compared_to_id:
+            return row.compared_to_id, analysis_id
+        after = db.query(Analysis).filter(Analysis.compared_to_id == analysis_id).first()
+        if after is not None:
+            return analysis_id, after.id
+        return None
 
 
 def set_status(analysis_id: str, stage: str, detail: str = "", error: str | None = None) -> None:

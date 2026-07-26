@@ -1,4 +1,12 @@
-import type { AdminStats, AdminUser, AnalysisResult, AnalysisStatus, AnalysisSummary, CurrentUser } from '../types'
+import type {
+  AdminStats,
+  AdminUser,
+  AnalysisResult,
+  AnalysisStatus,
+  AnalysisSummary,
+  ComparisonResponse,
+  CurrentUser,
+} from '../types'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
@@ -70,6 +78,29 @@ export async function createAnalysis(params: {
     credentials: 'include',
     body: form,
   })
+  return asJson(res)
+}
+
+export async function createComparison(
+  id: string,
+  params: { file?: File | null; link?: string; briefing?: string }
+): Promise<{ id: string }> {
+  const form = new FormData()
+  if (params.file) form.append('file', params.file)
+  if (params.link) form.append('link', params.link)
+  if (params.briefing) form.append('briefing', params.briefing)
+
+  const res = await fetch(`${BASE_URL}/api/analyses/${id}/compare`, {
+    method: 'POST',
+    credentials: 'include',
+    body: form,
+  })
+  return asJson(res)
+}
+
+export async function getComparison(id: string): Promise<ComparisonResponse | null> {
+  const res = await fetch(`${BASE_URL}/api/analyses/${id}/comparison`, { credentials: 'include' })
+  if (res.status === 404) return null
   return asJson(res)
 }
 

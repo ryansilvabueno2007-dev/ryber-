@@ -96,3 +96,10 @@ class AnalysisSummary(BaseModel):
     stage: str
     product: Optional[str] = None
     created_at: Optional[str] = None
+
+
+class ComparisonResponse(BaseModel):
+    before_id: str
+    after_id: str
+    before: AnalysisResult
+    after: AnalysisResult
