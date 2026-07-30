@@ -1,8 +1,18 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def _strip_strings(cls, v):
+        # Env vars coladas no painel do Render/etc. às vezes carregam um "\n" ou
+        # espaço no final — a lib do Anthropic rejeita isso como header HTTP inválido.
+        if isinstance(v, str):
+            return v.strip()
+        return v
 
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5"
