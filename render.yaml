@@ -1,16 +1,11 @@
-# Deploy da Ryber no Render — tier gratuito no lançamento.
+# Deploy da Ryber no Render.
 #
-# IMPORTANTE (lembrete crítico): o Postgres free do Render é apagado automaticamente
-# após 30 dias. Migre o banco e o serviço de backend para o plano Starter (e adicione um
-# disco persistente em /var/data) antes desse prazo, ou os dados reais serão perdidos.
-# Sem disco persistente, os vídeos brutos em /var/data também podem ser perdidos a
-# qualquer reinício do serviço, mesmo antes dos 30 dias — isso é esperado no tier free.
-
-databases:
-  - name: ryber-db
-    plan: free
-    databaseName: ryber
-    user: ryber
+# Banco de dados: Supabase Postgres (não é mais gerenciado pelo Render — ver DATABASE_URL
+# abaixo, preenchida manualmente no painel). Frontend: Vercel (https://ryber.vercel.app).
+#
+# IMPORTANTE (lembrete crítico): sem disco persistente (que exige plano pago), os vídeos
+# brutos em /var/data podem ser perdidos a qualquer reinício do serviço — isso é esperado
+# enquanto o backend estiver no tier gratuito.
 
 services:
   - type: web
@@ -21,9 +16,7 @@ services:
     plan: free
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: ryber-db
-          property: connectionString
+        sync: false
       - key: DATA_DIR
         value: /var/data
       - key: ANTHROPIC_API_KEY
