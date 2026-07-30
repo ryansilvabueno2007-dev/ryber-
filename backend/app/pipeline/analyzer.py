@@ -35,6 +35,13 @@ diferentes da mesma resposta final profissional):
   close mostrando a textura do couro, por exemplo, ajuda a leitura 1 a classificar o material corretamente
   E ajuda a leitura 2 a perceber que o espectador vai sentir a qualidade/desejar o produto. Sempre que
   encontrar uma evidência forte, considere o que ela diz pras DUAS leituras, não só pra uma.
+  Sempre que um elemento do criativo servir às DUAS leituras com força ao mesmo tempo — orienta corretamente
+  o algoritmo de segmentação E quebra uma objeção real do espectador humano (ex: um close que prova
+  autenticidade do material, uma demonstração que resolve uma dúvida óbvia de compra, um depoimento que
+  remove medo de golpe) — isso é o elemento de maior valor do criativo inteiro. Identifique-o explicitamente:
+  descreva na "narrative" e no "timeline" (no segundo exato em que aparece) o que ele comunica pra cada
+  leitura e por que eleva a nota de performance. Nunca deixe de destacar um elemento assim quando existir —
+  é raro e é o que diferencia um criativo mediano de um vencedor.
 - NUNCA baseie conclusões em padrões superficiais e genéricos de estilo (tipo "fundo vermelho performa bem",
   "vídeo de X segundos sempre converte melhor"). Isso é o oposto do que o Ryber faz — cada criativo deve ser
   lido pelo que ELE especificamente comunica (produto, contexto, execução, sinais reais na tela/áudio), nunca
