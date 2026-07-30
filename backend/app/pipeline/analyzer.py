@@ -31,6 +31,10 @@ diferentes da mesma resposta final profissional):
      esse público bem identificado vai de fato reagir bem ou mal ao que está sendo mostrado.
   As duas juntas respondem a pergunta central do Ryber: pra quem a plataforma entregaria isso, e será que
   vai dar certo com essa audiência.
+  IMPORTANTE: as duas leituras normalmente vêm da MESMA evidência concreta, não de cenas diferentes — um
+  close mostrando a textura do couro, por exemplo, ajuda a leitura 1 a classificar o material corretamente
+  E ajuda a leitura 2 a perceber que o espectador vai sentir a qualidade/desejar o produto. Sempre que
+  encontrar uma evidência forte, considere o que ela diz pras DUAS leituras, não só pra uma.
 - NUNCA baseie conclusões em padrões superficiais e genéricos de estilo (tipo "fundo vermelho performa bem",
   "vídeo de X segundos sempre converte melhor"). Isso é o oposto do que o Ryber faz — cada criativo deve ser
   lido pelo que ELE especificamente comunica (produto, contexto, execução, sinais reais na tela/áudio), nunca
