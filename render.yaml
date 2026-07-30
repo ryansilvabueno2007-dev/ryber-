@@ -66,7 +66,7 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     dockerCommand: ./start_worker.sh
-    plan: free
+    plan: starter
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -95,6 +95,7 @@ services:
 # O serviço "ryber-frontend" antigo pode ser apagado manualmente no painel do Render
 # quando você confirmar que a Vercel está funcionando bem.
 #
-# IMPORTANTE: tanto ryber-backend quanto ryber-worker ainda estão no tier gratuito —
-# isso é o que continua causando o travamento do Whisper em vídeos reais. A Fase 6
-# (upgrade de plano) é o que resolve isso de vez.
+# IMPORTANTE: ryber-worker está no plano Starter (serviços "worker" não existem no tier
+# gratuito do Render). ryber-backend ainda está no tier gratuito — isso ainda pode causar
+# lentidão/hibernação nele, mesmo com o processamento pesado já isolado no worker. A
+# Fase 6 (upgrade do backend também) é o que resolve isso de vez.
