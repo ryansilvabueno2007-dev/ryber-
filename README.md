@@ -99,22 +99,25 @@ Acesse http://localhost:5173
 - Frontend e backend são independentes e falam por HTTP — dá para publicar o backend (Render/Railway) e o
   frontend (Vercel) separadamente mais adiante, só ajustando `VITE_API_BASE_URL` e `CORS_ORIGIN`.
 
-## Deploy (Render)
+## Deploy
 
-`render.yaml` já define os três serviços (backend Docker, frontend estático, Postgres) no **tier gratuito**.
-Passos manuais que só você pode fazer (exigem sua conta):
+Produção está dividida em: **frontend na Vercel** (`https://ryber.vercel.app`, `frontend/vercel.json`
+faz o rewrite de SPA) e **backend no Render** (`render.yaml`, Docker, ainda no Postgres do próprio Render
+por enquanto — migração pra Supabase + Redis do Upstash + storage no Cloudflare R2 está em andamento, ver
+plano de arquitetura).
 
-1. Criar um repositório no GitHub e dar `git push` (o repositório local já existe, só falta o remoto).
-2. No Render, criar um "Blueprint" apontando pro repositório — ele lê o `render.yaml` automaticamente.
-3. Preencher no painel do Render as variáveis marcadas `sync: false` no `render.yaml` (API keys, `CORS_ORIGIN`
-   com a URL real do frontend, `FRONTEND_URL`, etc.) — nunca vão para o repositório.
-4. Criar uma conta de teste no [Stripe](https://dashboard.stripe.com) (modo teste) pra pegar
-   `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` e configurar o webhook (`STRIPE_WEBHOOK_SECRET`) apontando pra
-   `https://<seu-backend>.onrender.com/api/billing/webhook`.
+1. Frontend: projeto na Vercel com **Root Directory = `frontend`**, framework Vite (detecta sozinho), env
+   var `VITE_API_BASE_URL` apontando pro backend do Render.
+2. Backend: Blueprint do Render lendo `render.yaml`, com as variáveis `sync: false` preenchidas manualmente
+   no painel (API keys, `CORS_ORIGIN`/`FRONTEND_URL` com a URL da Vercel, Stripe, etc.) — nunca vão pro
+   repositório.
+3. Stripe: conta de teste em [dashboard.stripe.com](https://dashboard.stripe.com) pra pegar
+   `STRIPE_SECRET_KEY`, os `STRIPE_PRICE_ID_*` de cada plano, e configurar o webhook (`STRIPE_WEBHOOK_SECRET`)
+   apontando pra `https://<seu-backend>.onrender.com/api/billing/webhook`.
 
-**Lembrete crítico:** o Postgres gratuito do Render é apagado automaticamente após 30 dias, e sem disco
-persistente (que exige plano pago) os vídeos brutos em disco podem se perder a qualquer reinício mesmo antes
-disso. Migre banco + backend pro plano Starter (com disco persistente) antes desse prazo.
+**Lembrete crítico:** o Postgres gratuito do Render é apagado automaticamente após 30 dias (ou até a migração
+pro Supabase terminar). Sem disco persistente, os vídeos brutos também podem se perder a qualquer reinício do
+serviço enquanto ainda estiver no tier gratuito.
 
 ## Construindo sua própria IA (dados de treino)
 
