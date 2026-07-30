@@ -47,6 +47,14 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
 
 # Frontend agora é hospedado na Vercel (https://ryber.vercel.app), não mais aqui.
 # O serviço "ryber-frontend" antigo pode ser apagado manualmente no painel do Render

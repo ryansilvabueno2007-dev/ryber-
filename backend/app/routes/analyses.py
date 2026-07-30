@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
-from app import storage
+from app import storage, storage_r2
 from app.auth import require_user
 from app.config import settings
 from app.db_models import User
@@ -152,8 +152,14 @@ async def get_analysis(analysis_id: str, user: User = Depends(require_user)) -> 
 
 
 @router.get("/media/{analysis_id}")
-async def get_media(analysis_id: str, user: User = Depends(require_user)) -> FileResponse:
+async def get_media(analysis_id: str, user: User = Depends(require_user)):
     _require_owned(analysis_id, user)
+
+    if storage_r2.is_configured():
+        key = storage_r2.find_key_by_prefix(f"uploads/{analysis_id}.")
+        if key is not None:
+            return RedirectResponse(storage_r2.presigned_url(key))
+
     path = storage.find_upload(analysis_id)
     if path is None:
         raise HTTPException(404, "Vídeo não encontrado.")

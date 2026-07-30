@@ -16,3 +16,4 @@ psycopg[binary]==3.2.3
 slowapi==0.1.9
 bcrypt==4.2.1
 stripe==11.4.1
+boto3==1.35.74
