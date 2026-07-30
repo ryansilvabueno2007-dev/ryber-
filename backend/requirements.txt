@@ -17,3 +17,5 @@ slowapi==0.1.9
 bcrypt==4.2.1
 stripe==11.4.1
 boto3==1.35.74
+redis==5.2.1
+rq==2.1.0

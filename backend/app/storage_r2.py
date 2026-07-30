@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import BinaryIO
 
 import boto3
 from botocore.config import Config
@@ -32,6 +33,10 @@ def upload_file(key: str, path: Path, content_type: str = "application/octet-str
 
 def upload_bytes(key: str, data: bytes, content_type: str = "application/octet-stream") -> None:
     _client().put_object(Bucket=settings.r2_bucket, Key=key, Body=data, ContentType=content_type)
+
+
+def upload_fileobj(key: str, fileobj: BinaryIO, content_type: str = "application/octet-stream") -> None:
+    _client().upload_fileobj(fileobj, settings.r2_bucket, key, ExtraArgs={"ContentType": content_type})
 
 
 def download_to_path(key: str, dest_path: Path) -> None:

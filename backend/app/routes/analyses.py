@@ -16,8 +16,8 @@ from app.models import (
     ComparisonResponse,
     CreateAnalysisResponse,
 )
-from app.pipeline import downloader, runner
-from app.pipeline.executor import executor
+from app.pipeline import tasks
+from app.queue import queue
 from app.rate_limit import limiter
 
 router = APIRouter(prefix="/api", tags=["analyses"])
@@ -63,19 +63,26 @@ def _start_analysis(
 
     analysis_id = uuid.uuid4().hex
 
-    video_path: Path | None = None
+    video_key: str | None = None
     if file:
+        if not storage_r2.is_configured():
+            raise HTTPException(503, "Armazenamento ainda não configurado.")
+
         suffix = Path(file.filename or "video.mp4").suffix or ".mp4"
-        video_path = downloader.save_upload(file.file, storage.UPLOADS_DIR, analysis_id, suffix)
+        file.file.seek(0, 2)
+        size = file.file.tell()
+        file.file.seek(0)
         max_bytes = settings.max_upload_mb * 1024 * 1024
-        if video_path.stat().st_size > max_bytes:
-            video_path.unlink(missing_ok=True)
+        if size > max_bytes:
             raise HTTPException(413, f"Arquivo maior que {settings.max_upload_mb}MB.")
+
+        video_key = f"uploads/{analysis_id}{suffix}"
+        storage_r2.upload_fileobj(video_key, file.file, content_type=file.content_type or "application/octet-stream")
 
     storage.create_analysis(analysis_id, user.id, compared_to_id=compared_to_id)
     storage.set_status(analysis_id, "reading", "Preparando vídeo")
 
-    executor.submit(runner.run_full, analysis_id, video_path, link, briefing)
+    queue.enqueue(tasks.process_analysis, analysis_id, video_key, link, briefing, job_timeout="30m")
 
     return analysis_id
 

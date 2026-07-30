@@ -55,7 +55,46 @@ services:
         sync: false
       - key: R2_BUCKET
         sync: false
+      - key: REDIS_URL
+        sync: false
+
+  # Processa as análises em segundo plano (fila RQ) — separado do serviço web de
+  # propósito, pra ffmpeg/Whisper não travarem/derrubarem quem está servindo HTTP.
+  - type: worker
+    name: ryber-worker
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    dockerCommand: ./start_worker.sh
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATA_DIR
+        value: /var/data
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5
+      - key: WHISPER_MODEL_SIZE
+        value: base
+      - key: MAX_FRAMES
+        value: "40"
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: REDIS_URL
+        sync: false
 
 # Frontend agora é hospedado na Vercel (https://ryber.vercel.app), não mais aqui.
 # O serviço "ryber-frontend" antigo pode ser apagado manualmente no painel do Render
 # quando você confirmar que a Vercel está funcionando bem.
+#
+# IMPORTANTE: tanto ryber-backend quanto ryber-worker ainda estão no tier gratuito —
+# isso é o que continua causando o travamento do Whisper em vídeos reais. A Fase 6
+# (upgrade de plano) é o que resolve isso de vez.
