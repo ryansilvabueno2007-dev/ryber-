@@ -1,5 +1,8 @@
 import json
+from datetime import datetime, timezone
 from pathlib import Path
+
+from sqlalchemy import func
 
 from app.config import settings
 from app.db import SessionLocal
@@ -154,6 +157,19 @@ def list_analyses(user_id: str, limit: int = 50, offset: int = 0) -> list[dict]:
                 }
             )
         return summaries
+
+
+def count_analyses_this_month(user_id: str) -> int:
+    """Quantas análises esse usuário já criou desde o início do mês corrente (UTC)."""
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    with SessionLocal() as db:
+        return (
+            db.query(func.count(Analysis.id))
+            .filter(Analysis.user_id == user_id, Analysis.created_at >= month_start)
+            .scalar()
+            or 0
+        )
 
 
 def list_trainable_ids() -> list[str]:

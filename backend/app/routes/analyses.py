@@ -22,6 +22,8 @@ from app.rate_limit import limiter
 
 router = APIRouter(prefix="/api", tags=["analyses"])
 
+PLAN_QUOTAS = {"start": 30, "platinum": 60, "gold": 100}
+
 
 def _require_owned(analysis_id: str, user: User) -> None:
     owner = storage.get_owner(analysis_id)
@@ -30,15 +32,34 @@ def _require_owned(analysis_id: str, user: User) -> None:
         raise HTTPException(404, "Análise não encontrada.")
 
 
+def _check_quota(user: User) -> None:
+    if user.is_admin:
+        return
+    if not user.is_subscribed or not user.plan:
+        raise HTTPException(402, "Assine um plano para analisar criativos.")
+    quota = PLAN_QUOTAS.get(user.plan)
+    if quota is None:
+        return
+    used = storage.count_analyses_this_month(user.id)
+    if used >= quota:
+        raise HTTPException(
+            429,
+            f"Você atingiu o limite de {quota} análises deste mês no seu plano. "
+            "Aguarde o próximo ciclo ou mude de plano.",
+        )
+
+
 def _start_analysis(
     file: Optional[UploadFile],
     link: Optional[str],
     briefing: Optional[str],
-    user_id: str,
+    user: User,
     compared_to_id: Optional[str] = None,
 ) -> str:
     if not file and not link:
         raise HTTPException(400, "Envie um arquivo de vídeo ou um link.")
+
+    _check_quota(user)
 
     analysis_id = uuid.uuid4().hex
 
@@ -51,7 +72,7 @@ def _start_analysis(
             video_path.unlink(missing_ok=True)
             raise HTTPException(413, f"Arquivo maior que {settings.max_upload_mb}MB.")
 
-    storage.create_analysis(analysis_id, user_id, compared_to_id=compared_to_id)
+    storage.create_analysis(analysis_id, user.id, compared_to_id=compared_to_id)
     storage.set_status(analysis_id, "reading", "Preparando vídeo")
 
     executor.submit(runner.run_full, analysis_id, video_path, link, briefing)
@@ -68,7 +89,7 @@ async def create_analysis(
     briefing: Optional[str] = Form(None),
     user: User = Depends(require_user),
 ) -> CreateAnalysisResponse:
-    analysis_id = _start_analysis(file, link, briefing, user.id)
+    analysis_id = _start_analysis(file, link, briefing, user)
     return CreateAnalysisResponse(id=analysis_id)
 
 
@@ -84,7 +105,7 @@ async def create_comparison(
 ) -> CreateAnalysisResponse:
     """Sobe uma nova versão do criativo (o "depois"), vinculada a uma análise já existente (o "antes")."""
     _require_owned(analysis_id, user)
-    new_id = _start_analysis(file, link, briefing, user.id, compared_to_id=analysis_id)
+    new_id = _start_analysis(file, link, briefing, user, compared_to_id=analysis_id)
     return CreateAnalysisResponse(id=new_id)
 
 
