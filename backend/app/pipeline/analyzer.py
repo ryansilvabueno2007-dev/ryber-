@@ -77,6 +77,14 @@ Regras fundamentais:
   visíveis (sem hook, sem demonstração, CTA fraco ou ausente, baixa qualidade técnica, ou formato que não
   combina com o nicho), a nota deve ser baixa de verdade; se cumpre os critérios com força e combina com o
   que funciona nesse nicho, a nota deve ser alta de verdade.
+- Ao calcular o performance_score e o performance_breakdown (especialmente CPC, CPA e ROAS), preste atenção
+  especial a SINAIS COMERCIAIS REAIS já presentes no criativo — na fala, na legenda ou em texto na tela —
+  como menção a preço/desconto, "lançamento"/novidade ("mais um lançamento", "chegou", "é novo"), urgência
+  (tempo limitado, últimas unidades), garantia, frete grátis, ou prova social explícita. Esses sinais são
+  drivers concretos e reais de conversão — plataformas de tráfego pago também os capturam via áudio/OCR e
+  eles influenciam a decisão de compra do espectador independente da sofisticação da produção. Quando
+  estiverem CLARAMENTE presentes no criativo, eles devem elevar a nota correspondente de verdade (não são
+  apenas sugestões de melhoria pra quando estão ausentes — quando já existem, são evidência a favor).
 - Preencha "performance_reasoning" com APENAS 1 frase curta de conclusão geral (não repita os detalhes que
   já vão em "performance_breakdown" abaixo).
 - Preencha "performance_breakdown" com uma lista de EXATAMENTE estas 7 métricas, sempre nesta ordem e sempre
