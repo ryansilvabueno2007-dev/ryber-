@@ -31,7 +31,7 @@ services:
       - key: ANTHROPIC_MODEL
         value: claude-sonnet-5
       - key: WHISPER_MODEL_SIZE
-        value: tiny
+        value: base
       - key: MAX_FRAMES
         value: "40"
       - key: CORS_ORIGIN
