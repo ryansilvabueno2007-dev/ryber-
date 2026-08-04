@@ -1,11 +1,12 @@
+import json
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app import storage, storage_r2
+from app import storage
 from app.auth import require_user
 from app.db_models import User
-from app.models import CreateOptimizationRequest, OptimizationStatus
+from app.models import CreateOptimizationRequest, OptimizationStatus, SceneDirection
 from app.pipeline import optimizer
 from app.queue import queue
 
@@ -19,8 +20,7 @@ async def create_optimization(
     if storage.get_owner(analysis_id) != user.id:
         raise HTTPException(404, "Análise não encontrada.")
 
-    # Geração por IA tem custo real por chamada — liberado só pra admin enquanto
-    # a qualidade/prompt ainda estão sendo validados na prática.
+    # Geração por IA ainda em validação de qualidade — liberado só pra admin por enquanto.
     if not user.is_admin:
         raise HTTPException(403, "Recurso ainda em teste, disponível só para administradores.")
 
@@ -29,10 +29,8 @@ async def create_optimization(
 
     optimization_id = uuid.uuid4().hex
     storage.create_optimization(optimization_id, analysis_id, user.id, payload.objective)
-    # Edição de vídeo na Runway pode passar de 30min na prática (bem mais lenta que
-    # análise) — job_timeout precisa cobrir isso mais a margem de download/upload.
     queue.enqueue(
-        optimizer.process_optimization, optimization_id, analysis_id, payload.objective, job_timeout="45m"
+        optimizer.process_optimization, optimization_id, analysis_id, payload.objective, job_timeout="10m"
     )
 
     return OptimizationStatus(id=optimization_id, status="queued", objective=payload.objective)
@@ -44,15 +42,14 @@ async def get_optimization(optimization_id: str, user: User = Depends(require_us
     if row is None or row.user_id != user.id:
         raise HTTPException(404, "Otimização não encontrada.")
 
-    video_url = None
-    if row.status == "done" and row.video_key and storage_r2.is_configured():
-        video_url = storage_r2.presigned_url(row.video_key)
+    scenes = []
+    if row.status == "done" and row.report_json:
+        scenes = [SceneDirection.model_validate(s) for s in json.loads(row.report_json)]
 
     return OptimizationStatus(
         id=row.id,
         status=row.status,
         objective=row.objective,
         error=row.error,
-        video_url=video_url,
-        runway_task_id=row.runway_task_id,
+        scenes=scenes,
     )

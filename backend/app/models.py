@@ -124,10 +124,18 @@ class CreateOptimizationRequest(BaseModel):
     ]
 
 
+class SceneDirection(BaseModel):
+    label: str
+    start: float
+    end: Optional[float] = None
+    observed: list[str] = []
+    suggestions: list[str] = []
+    reason: str = ""
+
+
 class OptimizationStatus(BaseModel):
     id: str
     status: Literal["queued", "processing", "done", "error"]
     objective: str
     error: Optional[str] = None
-    video_url: Optional[str] = None
-    runway_task_id: Optional[str] = None
+    scenes: list[SceneDirection] = []

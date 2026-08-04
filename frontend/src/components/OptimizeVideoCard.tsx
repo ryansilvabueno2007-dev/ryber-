@@ -26,7 +26,7 @@ function SparkleIcon({ className = 'h-4 w-4' }: { className?: string }) {
 
 const STATUS_LABEL: Record<string, string> = {
   queued: 'Na fila...',
-  processing: 'Gerando a versão otimizada... (pode levar alguns minutos)',
+  processing: 'O diretor criativo está montando o roteiro cena a cena...',
 }
 
 export function OptimizeVideoCard({ analysisId }: { analysisId: string }) {
@@ -87,16 +87,16 @@ export function OptimizeVideoCard({ analysisId }: { analysisId: string }) {
           <SparkleIcon />
         </span>
         <div>
-          <div className="text-sm font-semibold text-ink tracking-tight">Otimizar criativo com IA</div>
+          <div className="text-sm font-semibold text-ink tracking-tight">Roteiro de edição com IA</div>
           <p className="text-xs text-ink-soft">
-            Gere uma versão de referência já com os ajustes recomendados aplicados.
+            Um diretor criativo de IA analisa cada cena do seu vídeo e diz exatamente o que editar nela.
           </p>
         </div>
       </div>
 
       <div className="relative mb-5">
         <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-2.5">
-          Otimizar para qual objetivo?
+          Gerar roteiro para qual objetivo?
         </div>
         <div className="flex flex-wrap gap-2">
           {OBJECTIVES.map((o) => {
@@ -120,13 +120,56 @@ export function OptimizeVideoCard({ analysisId }: { analysisId: string }) {
         </div>
       </div>
 
-      {job?.status === 'done' && job.video_url ? (
+      {job?.status === 'done' && job.scenes.length > 0 ? (
         <div className="relative space-y-3">
-          <video
-            src={job.video_url}
-            controls
-            className="w-full rounded-xl border border-line bg-black aspect-[9/16] max-h-[60vh] object-contain"
-          />
+          {job.scenes.map((scene, i) => (
+            <div key={i} className="rounded-xl border border-line bg-panel/60 p-4">
+              <div className="text-xs font-semibold text-accent-strong tracking-tight mb-2.5">
+                Cena {scene.label}
+              </div>
+
+              {scene.observed.length > 0 && (
+                <div className="mb-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-1.5">
+                    O vídeo mostra
+                  </div>
+                  <ul className="space-y-1">
+                    {scene.observed.map((item, j) => (
+                      <li key={j} className="text-xs text-ink-soft flex gap-1.5">
+                        <span className="text-ink-faint">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {scene.suggestions.length > 0 && (
+                <div className="mb-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-1.5">
+                    Sugestões para {job.objective}
+                  </div>
+                  <ul className="space-y-1">
+                    {scene.suggestions.map((item, j) => (
+                      <li key={j} className="text-xs text-ink flex gap-1.5">
+                        <span className="text-accent-strong">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {scene.reason && (
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-1">
+                    Motivo
+                  </div>
+                  <p className="text-xs text-ink-soft">{scene.reason}</p>
+                </div>
+              )}
+            </div>
+          ))}
           <button
             type="button"
             onClick={() => {
@@ -135,7 +178,7 @@ export function OptimizeVideoCard({ analysisId }: { analysisId: string }) {
             }}
             className="w-full rounded-full border border-line text-ink-soft hover:border-accent-line hover:text-ink px-6 py-3 font-medium text-sm transition-all"
           >
-            Gerar outra versão
+            Gerar outro roteiro
           </button>
         </div>
       ) : (
@@ -148,17 +191,12 @@ export function OptimizeVideoCard({ analysisId }: { analysisId: string }) {
           <SparkleIcon className="h-4 w-4" />
           {isBusy
             ? STATUS_LABEL[job.status] ?? 'Gerando...'
-            : `Gerar uma versão otimizada com todos os ajustes para ${objective}`}
+            : `Gerar roteiro de edição cena a cena para ${objective}`}
         </button>
       )}
 
       {job?.status === 'error' && (
-        <div className="relative mt-3">
-          <p className="text-danger text-xs">{job.error ?? 'Falha ao gerar a versão otimizada.'}</p>
-          {job.runway_task_id && (
-            <p className="text-ink-faint text-[11px] mt-1 font-mono">ID da tarefa: {job.runway_task_id}</p>
-          )}
-        </div>
+        <p className="relative mt-3 text-danger text-xs">{job.error ?? 'Falha ao gerar o roteiro.'}</p>
       )}
       {error && <p className="relative text-danger text-xs mt-3">{error}</p>}
     </div>

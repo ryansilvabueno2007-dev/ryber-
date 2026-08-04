@@ -187,8 +187,7 @@ def create_optimization(optimization_id: str, analysis_id: str, user_id: str, ob
 
 
 def set_optimization_status(
-    optimization_id: str, status: str, error: str | None = None, video_key: str | None = None,
-    runway_task_id: str | None = None,
+    optimization_id: str, status: str, error: str | None = None, report_json: str | None = None,
 ) -> None:
     with SessionLocal() as db:
         row = db.get(Optimization, optimization_id)
@@ -197,10 +196,8 @@ def set_optimization_status(
         row.status = status
         if error is not None:
             row.error = error
-        if video_key is not None:
-            row.video_key = video_key
-        if runway_task_id is not None:
-            row.runway_task_id = runway_task_id
+        if report_json is not None:
+            row.report_json = report_json
         db.commit()
 
 

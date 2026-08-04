@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
 
 from app.db import Base
@@ -62,7 +62,7 @@ class Analysis(Base):
 
 
 class Optimization(Base):
-    """Versão de referência gerada por IA (Runway) com os ajustes de um objetivo aplicados."""
+    """Roteiro de edição cena a cena gerado por IA a partir da timeline da análise."""
 
     __tablename__ = "optimizations"
 
@@ -71,8 +71,9 @@ class Optimization(Base):
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     objective = Column(String, nullable=False)
     status = Column(String, nullable=False, default="queued")  # queued|processing|done|error
-    video_key = Column(String, nullable=True)  # chave no R2, quando status == done
+    video_key = Column(String, nullable=True)  # legado (fluxo antigo via Runway) — não usado mais
+    report_json = Column(Text, nullable=True)  # lista de SceneDirection, quando status == done
     error = Column(String, nullable=True)
-    runway_task_id = Column(String, nullable=True)
+    runway_task_id = Column(String, nullable=True)  # legado (fluxo antigo via Runway) — não usado mais
     created_at = Column(DateTime(timezone=True), default=_now)
     updated_at = Column(DateTime(timezone=True), default=_now, onupdate=_now)

@@ -114,13 +114,21 @@ export type OptimizationObjective =
   | 'Reconhecimento de Marca/Alcance'
   | 'Cadastro/Geração de Leads'
 
+export interface SceneDirection {
+  label: string
+  start: number
+  end: number | null
+  observed: string[]
+  suggestions: string[]
+  reason: string
+}
+
 export interface OptimizationStatus {
   id: string
   status: 'queued' | 'processing' | 'done' | 'error'
   objective: string
   error: string | null
-  video_url: string | null
-  runway_task_id: string | null
+  scenes: SceneDirection[]
 }
 
 export interface AdminStats {
