@@ -17,9 +17,7 @@ export function NarrativeBlock({ narrative, audienceConclusion }: Props) {
         {audienceConclusion && (
           <>
             {' '}
-            <mark className="bg-accent-soft text-ink box-decoration-clone rounded px-1">
-              {audienceConclusion}
-            </mark>
+            <mark className="bg-accent-soft text-ink rounded px-1">{audienceConclusion}</mark>
           </>
         )}
       </p>
