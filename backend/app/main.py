@@ -35,7 +35,9 @@ app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.cors_origin],
+    # CORS_ORIGIN aceita uma ou mais origens separadas por vírgula (ex: domínio da
+    # Vercel + domínio próprio), pra não perder acesso por nenhum dos dois ao trocar.
+    allow_origins=[o.strip() for o in settings.cors_origin.split(",") if o.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
