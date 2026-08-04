@@ -29,8 +29,10 @@ async def create_optimization(
 
     optimization_id = uuid.uuid4().hex
     storage.create_optimization(optimization_id, analysis_id, user.id, payload.objective)
+    # Edição de vídeo na Runway pode passar de 30min na prática (bem mais lenta que
+    # análise) — job_timeout precisa cobrir isso mais a margem de download/upload.
     queue.enqueue(
-        optimizer.process_optimization, optimization_id, analysis_id, payload.objective, job_timeout="15m"
+        optimizer.process_optimization, optimization_id, analysis_id, payload.objective, job_timeout="45m"
     )
 
     return OptimizationStatus(id=optimization_id, status="queued", objective=payload.objective)
@@ -47,5 +49,10 @@ async def get_optimization(optimization_id: str, user: User = Depends(require_us
         video_url = storage_r2.presigned_url(row.video_key)
 
     return OptimizationStatus(
-        id=row.id, status=row.status, objective=row.objective, error=row.error, video_url=video_url
+        id=row.id,
+        status=row.status,
+        objective=row.objective,
+        error=row.error,
+        video_url=video_url,
+        runway_task_id=row.runway_task_id,
     )

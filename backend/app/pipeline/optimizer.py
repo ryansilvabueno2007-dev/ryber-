@@ -6,6 +6,7 @@ que a análise já produziu.
 """
 import subprocess
 import tempfile
+import traceback
 from pathlib import Path
 
 import httpx
@@ -19,7 +20,11 @@ from app.pipeline import video
 
 MAX_INPUT_SECONDS = 30  # limite da Aleph 2.0 pra vídeo de entrada
 PROMPT_MAX_CHARS = 1000  # limite do campo promptText da Aleph 2.0
-POLL_TIMEOUT_SECONDS = 60 * 8
+# Medido na prática: uma edição de ~28s ficou em 26% de progresso depois de 9 minutos
+# rodando — o tempo real de uma edição da Aleph 2.0 é bem maior do que uma análise.
+# Fica abaixo do job_timeout da fila (routes/optimize.py) pra sobrar margem pro
+# download/upload do resultado depois que a Runway termina.
+POLL_TIMEOUT_SECONDS = 60 * 40
 
 # Quais métricas priorizar na edição, por objetivo de campanha — bate com o que
 # cada objetivo de fato mede (ex: Reconhecimento não depende de CPA/ROAS).
@@ -190,6 +195,9 @@ def process_optimization(optimization_id: str, analysis_id: str, objective: str)
                 video_uri=video_uri,
                 prompt_text=prompt_text,
             )
+            # Sempre visível no log — sem isso, um erro/timeout deixa a tarefa da Runway
+            # órfã: ela continua rodando (e cobrando) do lado deles sem a gente saber o ID.
+            print(f"[optimizer] runway task {task.id} criada pra optimization {optimization_id}", flush=True)
             storage.set_optimization_status(optimization_id, "processing", runway_task_id=task.id)
 
             task_details = task.wait_for_task_output(timeout=POLL_TIMEOUT_SECONDS)
@@ -210,10 +218,17 @@ def process_optimization(optimization_id: str, analysis_id: str, objective: str)
 
     except TaskFailedError as exc:
         failure = getattr(exc.task_details, "failure", None) or "A geração falhou na Runway."
+        print(f"[optimizer] runway task {exc.task_details.id} falhou: {failure}", flush=True)
         storage.set_optimization_status(optimization_id, "error", error=str(failure))
-    except TaskTimeoutError:
+    except TaskTimeoutError as exc:
+        print(
+            f"[optimizer] runway task {exc.task_details.id} não terminou dentro do timeout "
+            f"({POLL_TIMEOUT_SECONDS}s) — pode continuar rodando do lado da Runway.",
+            flush=True,
+        )
         storage.set_optimization_status(
             optimization_id, "error", error="A geração demorou mais que o esperado. Tente novamente."
         )
     except Exception as exc:  # noqa: BLE001
+        traceback.print_exc()
         storage.set_optimization_status(optimization_id, "error", error=str(exc))

@@ -120,6 +120,7 @@ export interface OptimizationStatus {
   objective: string
   error: string | null
   video_url: string | null
+  runway_task_id: string | null
 }
 
 export interface AdminStats {

@@ -153,7 +153,12 @@ export function OptimizeVideoCard({ analysisId }: { analysisId: string }) {
       )}
 
       {job?.status === 'error' && (
-        <p className="relative text-danger text-xs mt-3">{job.error ?? 'Falha ao gerar a versão otimizada.'}</p>
+        <div className="relative mt-3">
+          <p className="text-danger text-xs">{job.error ?? 'Falha ao gerar a versão otimizada.'}</p>
+          {job.runway_task_id && (
+            <p className="text-ink-faint text-[11px] mt-1 font-mono">ID da tarefa: {job.runway_task_id}</p>
+          )}
+        </div>
       )}
       {error && <p className="relative text-danger text-xs mt-3">{error}</p>}
     </div>
