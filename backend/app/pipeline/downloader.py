@@ -2,6 +2,7 @@ import ipaddress
 import mimetypes
 import shutil
 import socket
+import time
 from pathlib import Path
 from typing import BinaryIO
 from urllib.parse import urljoin, urlparse
@@ -58,6 +59,12 @@ def download_from_link(url: str, dest_dir: Path, analysis_id: str) -> Path:
         ) from None
 
 
+# Espera crescente antes de cada nova tentativa quando a plataforma responde 429
+# (limite de requisições) — costuma ser passageiro, diferente de link inválido ou
+# bloqueio de bot, que tentar de novo não resolve.
+_RATE_LIMIT_BACKOFF_SECONDS = [5, 15, 45]
+
+
 def _download_video(url: str, dest_dir: Path, analysis_id: str) -> Path:
     outtmpl = str(dest_dir / f"{analysis_id}.%(ext)s")
     ydl_opts = {
@@ -70,13 +77,22 @@ def _download_video(url: str, dest_dir: Path, analysis_id: str) -> Path:
         "socket_timeout": 20,
         "retries": 3,
     }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
 
-    matches = list(dest_dir.glob(f"{analysis_id}.*"))
-    if not matches:
-        raise RuntimeError("Falha ao baixar o vídeo do link fornecido.")
-    return matches[0]
+    for backoff in (0, *_RATE_LIMIT_BACKOFF_SECONDS):
+        if backoff:
+            time.sleep(backoff)
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+            matches = list(dest_dir.glob(f"{analysis_id}.*"))
+            if not matches:
+                raise RuntimeError("Falha ao baixar o vídeo do link fornecido.")
+            return matches[0]
+        except yt_dlp.utils.DownloadError as exc:
+            if "429" not in str(exc):
+                raise
+
+    raise RuntimeError("Falha ao baixar o vídeo do link fornecido (limite de requisições excedido).")
 
 
 def _try_download_image(url: str, dest_dir: Path, analysis_id: str) -> Path | None:

@@ -60,13 +60,16 @@ services:
 
   # Processa as análises em segundo plano (fila RQ) — separado do serviço web de
   # propósito, pra ffmpeg/Whisper não travarem/derrubarem quem está servindo HTTP.
+  # Plano "standard" (mais RAM que o Starter, que tem ~512MB) — o Starter estourava
+  # memória com ffmpeg + faster-whisper rodando juntos em vídeos mais longos (~1min),
+  # travando a análise pra sempre em "transcrevendo o áudio" sem nunca virar erro.
   - type: worker
     name: ryber-worker
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     dockerCommand: ./start_worker.sh
-    plan: starter
+    plan: standard
     envVars:
       - key: DATABASE_URL
         sync: false
