@@ -21,6 +21,7 @@ import { BriefingCompat } from '../components/BriefingCompat'
 import { PerformanceScore } from '../components/PerformanceScore'
 import { MarketBenchmarkCard } from '../components/MarketBenchmarkCard'
 import { ObjectiveFitCard } from '../components/ObjectiveFitCard'
+import { OptimizeVideoCard } from '../components/OptimizeVideoCard'
 import { CorrectionForm } from '../components/CorrectionForm'
 import { exportElementToPdf } from '../lib/exportPdf'
 
@@ -234,6 +235,7 @@ export function Analysis() {
                     recommended={result.recommended_objective}
                   />
                 )}
+                <OptimizeVideoCard />
               </div>
 
               <SectionHeading eyebrow="Leitura do criativo" />
