@@ -157,8 +157,11 @@ export function Analysis() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             {corrected ? (
-              <span className="text-xs font-medium text-accent bg-accent-soft rounded-full px-3 py-1">
-                ✓ Você corrigiu esta análise
+              <span className="flex items-center gap-1.5 text-xs font-medium text-accent bg-accent-soft border border-accent-line rounded-full px-3 py-1.5">
+                <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5">
+                  <path d="M4 10.5 8 14.5 16 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Você corrigiu esta análise
               </span>
             ) : (
               <span />
@@ -168,14 +171,14 @@ export function Analysis() {
                 <button
                   onClick={handleExportPdf}
                   disabled={exporting}
-                  className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 disabled:opacity-60"
+                  className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 decoration-line disabled:opacity-60"
                 >
                   {exporting ? 'Gerando PDF...' : 'Exportar PDF'}
                 </button>
                 {hasComparison ? (
                   <Link
                     to={`/analysis/${id}/compare`}
-                    className="text-sm text-ink-soft hover:text-accent underline underline-offset-2"
+                    className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 decoration-line"
                   >
                     Ver antes/depois
                   </Link>
@@ -191,7 +194,7 @@ export function Analysis() {
                     <button
                       onClick={() => compareInputRef.current?.click()}
                       disabled={uploadingCompare}
-                      className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 disabled:opacity-60"
+                      className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 decoration-line disabled:opacity-60"
                     >
                       {uploadingCompare ? 'Enviando nova versão...' : 'Comparar com nova versão'}
                     </button>
@@ -199,7 +202,7 @@ export function Analysis() {
                 )}
                 <button
                   onClick={() => setEditing(true)}
-                  className="text-sm text-ink-soft hover:text-accent underline underline-offset-2"
+                  className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 decoration-line"
                 >
                   Corrigir leitura
                 </button>

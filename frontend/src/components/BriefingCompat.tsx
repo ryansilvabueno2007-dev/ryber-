@@ -16,10 +16,10 @@ const STATUS_LABEL: Record<BriefingItemStatus, string> = {
 }
 
 const STATUS_STYLE: Record<BriefingItemStatus, string> = {
-  excelente: 'bg-accent-soft text-accent',
-  bom: 'bg-accent-soft text-accent',
-  precisa_melhorar: 'bg-warn-soft text-warn',
-  ausente: 'bg-danger-soft text-danger',
+  excelente: 'bg-accent-soft text-accent border-accent-line',
+  bom: 'bg-accent-soft text-accent border-accent-line',
+  precisa_melhorar: 'bg-warn-soft text-warn border-warn/25',
+  ausente: 'bg-danger-soft text-danger border-danger/25',
 }
 
 function BriefingItem({ item }: { item: BriefingItemEvaluation }) {
@@ -28,11 +28,11 @@ function BriefingItem({ item }: { item: BriefingItemEvaluation }) {
   const isExcellent = item.status === 'excelente'
 
   return (
-    <div className="rounded-xl border border-line p-4">
+    <div className="rounded-xl border border-line bg-panel-raised/40 p-4">
       <div className="flex items-center justify-between gap-2 mb-2">
         <span className="font-medium text-sm">{item.item}</span>
         <span
-          className={`rounded-full text-xs font-medium px-2.5 py-0.5 shrink-0 ${STATUS_STYLE[item.status]}`}
+          className={`rounded-full border text-xs font-medium px-2.5 py-0.5 shrink-0 ${STATUS_STYLE[item.status]}`}
         >
           {isExcellent ? `${STATUS_LABEL[item.status]} · 100%` : `${STATUS_LABEL[item.status]} · ${pct}%`}
         </span>
@@ -63,9 +63,9 @@ function BriefingItem({ item }: { item: BriefingItemEvaluation }) {
 export function BriefingCompat({ compat }: { compat: BriefingCompatibility }) {
   const pct = Math.round(compat.overall_score * 100)
   return (
-    <div className="rounded-2xl border border-line bg-panel p-6 shadow-card shadow-card-hover transition-shadow">
-      <div className="text-xs font-medium uppercase tracking-wide text-ink-soft mb-4">
-        Compatibilidade com Briefing
+    <div className="rounded-2xl border border-line bg-panel p-6 shadow-card shadow-card-hover transition-all duration-300 hover:border-white/[0.14]">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-4">
+        Compatibilidade com briefing
       </div>
       <div className="flex items-center gap-5 mb-5">
         <ScoreGauge pct={pct} color={gaugeColorFor(pct)} />

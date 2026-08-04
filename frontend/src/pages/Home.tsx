@@ -19,14 +19,16 @@ export function Home() {
   }
 
   return (
-    <div className="min-h-full flex flex-col">
+    <div className="min-h-full flex flex-col relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid pointer-events-none" />
       <Header />
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-20">
+      <div className="relative flex-1 flex flex-col items-center justify-center px-6 py-20">
         <div className="text-center mb-12">
-          <span className="inline-block text-xs font-semibold uppercase tracking-wider text-accent bg-accent-soft rounded-full px-3 py-1 mb-5">
+          <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-accent border border-accent-line bg-accent-soft rounded-full px-3.5 py-1.5 mb-6">
+            <span className="h-1 w-1 rounded-full bg-accent shadow-glow" />
             Análise de criativos com IA
           </span>
-          <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-4">
+          <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight mb-4 text-ink">
             Saiba como sua IA de publicidade vai ler seu anúncio
           </h1>
           <p className="text-ink-soft text-lg max-w-lg mx-auto leading-relaxed">

@@ -6,12 +6,12 @@ export function ResultCards({ result }: { result: AnalysisResult }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <Card title="Produto">
-        <div className="text-xl font-medium mb-2">{result.product.name}</div>
+        <div className="text-xl font-medium mb-2 tracking-tight">{result.product.name}</div>
         <ConfidenceBar value={result.product.confidence} />
       </Card>
 
       <Card title="Categoria">
-        <div className="text-xl font-medium">{result.category}</div>
+        <div className="text-xl font-medium tracking-tight">{result.category}</div>
       </Card>
 
       <Card title="Material">
@@ -26,21 +26,21 @@ export function ResultCards({ result }: { result: AnalysisResult }) {
       </Card>
 
       <Card title="Público">
-        <div className="space-y-1 text-lg font-medium mb-3">
+        <div className="space-y-1 text-lg font-medium mb-3 tracking-tight">
           <div>{result.audience.gender}</div>
           <div>{result.audience.age_range}</div>
           <div className="text-ink-soft text-sm font-normal">{result.audience.social_class}</div>
         </div>
         {result.audience.interests.length > 0 && (
           <div>
-            <div className="text-xs font-medium uppercase tracking-wide text-ink-soft mb-2">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-2">
               Interesses prováveis
             </div>
             <div className="flex flex-wrap gap-2">
               {result.audience.interests.map((interest) => (
                 <span
                   key={interest}
-                  className="rounded-full bg-accent-soft text-accent text-xs px-3 py-1 font-medium"
+                  className="rounded-full border border-accent-line bg-accent-soft text-accent text-xs px-3 py-1 font-medium"
                 >
                   {interest}
                 </span>
@@ -51,12 +51,12 @@ export function ResultCards({ result }: { result: AnalysisResult }) {
       </Card>
 
       <Card title="Posicionamento">
-        <div className="text-xl font-medium mb-2">{result.positioning.name}</div>
+        <div className="text-xl font-medium mb-2 tracking-tight">{result.positioning.name}</div>
         <ConfidenceBar value={result.positioning.confidence} />
       </Card>
 
       <Card title="Emoção">
-        <div className="text-xl font-medium mb-2">{result.emotion.name}</div>
+        <div className="text-xl font-medium mb-2 tracking-tight">{result.emotion.name}</div>
         <ConfidenceBar value={result.emotion.confidence} />
       </Card>
 

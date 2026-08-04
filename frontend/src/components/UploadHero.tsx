@@ -38,12 +38,13 @@ export function UploadHero({ onSubmit }: Props) {
         onDragLeave={() => setDragActive(false)}
         onDrop={handleDrop}
         animate={{
-          borderColor: dragActive ? 'var(--color-accent)' : 'var(--color-line)',
+          borderColor: dragActive ? 'var(--color-accent)' : 'rgba(255,255,255,0.12)',
           scale: dragActive ? 1.01 : 1,
         }}
-        className="rounded-3xl border-2 border-dashed bg-panel p-12 text-center cursor-pointer shadow-elevated"
+        className="relative rounded-3xl border-2 border-dashed glass p-12 text-center cursor-pointer shadow-elevated overflow-hidden"
         onClick={() => inputRef.current?.click()}
       >
+        {dragActive && <div className="absolute inset-0 bg-accent-soft/60 pointer-events-none" />}
         <input
           ref={inputRef}
           type="file"
@@ -54,7 +55,7 @@ export function UploadHero({ onSubmit }: Props) {
             if (file) handleFile(file)
           }}
         />
-        <div className="mx-auto mb-5 h-14 w-14 rounded-2xl bg-accent-soft flex items-center justify-center">
+        <div className="relative mx-auto mb-5 h-14 w-14 rounded-2xl border border-accent-line bg-accent-soft flex items-center justify-center">
           <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-accent">
             <path
               d="M12 15V4m0 0 4 4m-4-4-4 4"
@@ -72,13 +73,13 @@ export function UploadHero({ onSubmit }: Props) {
             />
           </svg>
         </div>
-        <div className="text-2xl font-medium mb-2">Analisar Criativo</div>
-        <p className="text-ink-soft mb-6">Arraste um vídeo ou uma imagem, ou escolha um arquivo</p>
+        <div className="relative text-2xl font-medium mb-2 text-ink tracking-tight">Analisar Criativo</div>
+        <p className="relative text-ink-soft mb-6">Arraste um vídeo ou uma imagem, ou escolha um arquivo</p>
         <motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.98 }}
           type="button"
-          className="rounded-full bg-accent text-white px-6 py-3 font-medium shadow-card"
+          className="relative rounded-full bg-accent text-white px-6 py-3 font-medium shadow-glow"
         >
           Escolher arquivo
         </motion.button>
@@ -89,11 +90,11 @@ export function UploadHero({ onSubmit }: Props) {
           value={link}
           onChange={(e) => setLink(e.target.value)}
           placeholder="Ou cole um link"
-          className="flex-1 rounded-full border border-line bg-panel px-5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-shadow"
+          className="flex-1 rounded-full border border-line bg-panel px-5 py-3 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-shadow"
         />
         <button
           type="submit"
-          className="rounded-full border border-line px-5 py-3 text-sm font-medium hover:border-accent hover:text-accent transition-colors"
+          className="rounded-full border border-line px-5 py-3 text-sm font-medium text-ink-soft hover:border-accent hover:text-accent transition-colors"
         >
           Analisar
         </button>
@@ -113,7 +114,7 @@ export function UploadHero({ onSubmit }: Props) {
             onChange={(e) => setBriefing(e.target.value)}
             placeholder={'Produto Premium\nCouro\nMulheres 45+\nConforto\nDurabilidade'}
             rows={4}
-            className="mt-3 w-full rounded-2xl border border-line bg-panel px-4 py-3 text-sm outline-none focus:border-accent"
+            className="mt-3 w-full rounded-2xl border border-line bg-panel px-4 py-3 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent"
           />
         )}
       </div>

@@ -12,7 +12,7 @@ export function Header({ right }: { right?: ReactNode }) {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line/70 bg-panel/80 backdrop-blur-md">
+    <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-canvas/80 backdrop-blur-xl">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
         <Link to={user ? '/app' : '/'} className="flex items-center gap-2 shrink-0 group">
           <img src="/logo-mark.png" alt="" className="h-7 w-7 sm:h-8 sm:w-8" />
@@ -26,14 +26,14 @@ export function Header({ right }: { right?: ReactNode }) {
             <>
               <Link
                 to="/history"
-                className="text-sm font-medium text-ink-soft hover:text-accent transition-colors whitespace-nowrap"
+                className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
               >
                 Histórico
               </Link>
               {user.is_admin && (
                 <Link
                   to="/admin"
-                  className="hidden sm:inline-block text-sm font-medium text-ink-soft hover:text-accent transition-colors whitespace-nowrap"
+                  className="hidden sm:inline-block text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
                 >
                   Admin
                 </Link>
@@ -41,14 +41,14 @@ export function Header({ right }: { right?: ReactNode }) {
               {!user.is_subscribed && (
                 <Link
                   to="/#precos"
-                  className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-card whitespace-nowrap"
+                  className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-glow hover:bg-accent-strong transition-colors whitespace-nowrap"
                 >
                   Assinar
                 </Link>
               )}
               <button
                 onClick={handleLogout}
-                className="text-sm font-medium text-ink-soft hover:text-accent transition-colors whitespace-nowrap"
+                className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
               >
                 Sair
               </button>
@@ -57,13 +57,13 @@ export function Header({ right }: { right?: ReactNode }) {
             <>
               <Link
                 to="/login"
-                className="text-sm font-medium text-ink-soft hover:text-accent transition-colors whitespace-nowrap"
+                className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
               >
                 Entrar
               </Link>
               <Link
                 to="/signup"
-                className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-card whitespace-nowrap"
+                className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-glow hover:bg-accent-strong transition-colors whitespace-nowrap"
               >
                 Criar conta
               </Link>

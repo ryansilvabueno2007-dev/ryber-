@@ -38,7 +38,7 @@ export function MediaTimeline({ src, timeline, mediaType }: Props) {
       )}
 
       <div className="rounded-2xl border border-line bg-panel p-4 max-h-72 overflow-y-auto shadow-card">
-        <div className="text-xs font-medium uppercase tracking-wide text-ink-soft mb-3">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-3">
           {mediaType === 'video' ? 'Timeline' : 'O que a IA viu'}
         </div>
         <ul className="space-y-1">
@@ -57,10 +57,10 @@ export function MediaTimeline({ src, timeline, mediaType }: Props) {
                 <button
                   onClick={() => seek(entry.t)}
                   className={`w-full text-left rounded-lg px-3 py-2 text-sm transition-colors ${
-                    isActive ? 'bg-accent-soft text-accent' : 'hover:bg-canvas text-ink-soft'
+                    isActive ? 'bg-accent-soft text-accent' : 'hover:bg-panel-raised text-ink-soft'
                   }`}
                 >
-                  <span className="font-mono text-xs mr-2 tabular-nums">
+                  <span className="font-mono text-xs mr-2 tabular-nums text-ink-faint">
                     {Math.floor(entry.t)}s
                   </span>
                   {entry.finding}

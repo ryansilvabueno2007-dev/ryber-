@@ -25,11 +25,14 @@ export function ScoreGauge({ pct, color, trackColor = 'var(--color-line)', size 
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          style={{ transition: 'stroke-dashoffset 0.6s ease-out' }}
+          style={{
+            transition: 'stroke-dashoffset 0.9s cubic-bezier(0.16, 1, 0.3, 1)',
+            filter: `drop-shadow(0 0 6px color-mix(in srgb, ${color} 55%, transparent))`,
+          }}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xl font-semibold tabular-nums text-ink">{pct}%</span>
+        <span className="text-xl font-semibold tabular-nums text-ink tracking-tight">{pct}%</span>
       </div>
     </div>
   )

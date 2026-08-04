@@ -5,8 +5,8 @@ interface Props {
 
 export function NarrativeBlock({ narrative, audienceConclusion }: Props) {
   return (
-    <div className="rounded-2xl border border-line bg-panel p-6 shadow-card shadow-card-hover transition-shadow">
-      <div className="text-xs font-medium uppercase tracking-wide text-ink-soft mb-3">
+    <div className="rounded-2xl border border-line bg-panel p-6 shadow-card shadow-card-hover transition-all duration-300 hover:border-white/[0.14]">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-3">
         O que a IA acredita
       </div>
       <p className="text-lg leading-relaxed text-ink">
