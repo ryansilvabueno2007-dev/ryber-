@@ -235,7 +235,7 @@ export function Analysis() {
                     recommended={result.recommended_objective}
                   />
                 )}
-                <OptimizeVideoCard />
+                <OptimizeVideoCard analysisId={id} />
               </div>
 
               <SectionHeading eyebrow="Leitura do criativo" />

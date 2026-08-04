@@ -50,6 +50,16 @@ def find_key_by_prefix(prefix: str) -> str | None:
     return contents[0]["Key"] if contents else None
 
 
+def list_keys_by_prefix(prefix: str, max_keys: int = 200) -> list[str]:
+    resp = _client().list_objects_v2(Bucket=settings.r2_bucket, Prefix=prefix, MaxKeys=max_keys)
+    return sorted(obj["Key"] for obj in resp.get("Contents", []))
+
+
+def download_bytes(key: str) -> bytes:
+    obj = _client().get_object(Bucket=settings.r2_bucket, Key=key)
+    return obj["Body"].read()
+
+
 def presigned_url(key: str, expires: int = 3600) -> str:
     return _client().generate_presigned_url(
         "get_object", Params={"Bucket": settings.r2_bucket, "Key": key}, ExpiresIn=expires

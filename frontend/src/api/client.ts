@@ -6,6 +6,8 @@ import type {
   AnalysisSummary,
   ComparisonResponse,
   CurrentUser,
+  OptimizationObjective,
+  OptimizationStatus,
 } from '../types'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
@@ -131,6 +133,24 @@ export async function getAdminStats(): Promise<AdminStats> {
 
 export async function getAdminUsers(): Promise<AdminUser[]> {
   const res = await fetch(`${BASE_URL}/api/admin/users`, { credentials: 'include' })
+  return asJson(res)
+}
+
+export async function createOptimization(
+  analysisId: string,
+  objective: OptimizationObjective
+): Promise<OptimizationStatus> {
+  const res = await fetch(`${BASE_URL}/api/analyses/${analysisId}/optimize`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ objective }),
+  })
+  return asJson(res)
+}
+
+export async function getOptimization(id: string): Promise<OptimizationStatus> {
+  const res = await fetch(`${BASE_URL}/api/optimizations/${id}`, { credentials: 'include' })
   return asJson(res)
 }
 

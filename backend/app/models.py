@@ -103,3 +103,30 @@ class ComparisonResponse(BaseModel):
     after_id: str
     before: AnalysisResult
     after: AnalysisResult
+
+
+OBJECTIVES = [
+    "Vendas/Conversão",
+    "Cliques/Tráfego",
+    "Engajamento",
+    "Reconhecimento de Marca/Alcance",
+    "Cadastro/Geração de Leads",
+]
+
+
+class CreateOptimizationRequest(BaseModel):
+    objective: Literal[
+        "Vendas/Conversão",
+        "Cliques/Tráfego",
+        "Engajamento",
+        "Reconhecimento de Marca/Alcance",
+        "Cadastro/Geração de Leads",
+    ]
+
+
+class OptimizationStatus(BaseModel):
+    id: str
+    status: Literal["queued", "processing", "done", "error"]
+    objective: str
+    error: Optional[str] = None
+    video_url: Optional[str] = None

@@ -59,3 +59,20 @@ class Analysis(Base):
     updated_at = Column(DateTime(timezone=True), default=_now, onupdate=_now)
 
     user = relationship("User", back_populates="analyses")
+
+
+class Optimization(Base):
+    """Versão de referência gerada por IA (Runway) com os ajustes de um objetivo aplicados."""
+
+    __tablename__ = "optimizations"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    analysis_id = Column(String, ForeignKey("analyses.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    objective = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="queued")  # queued|processing|done|error
+    video_key = Column(String, nullable=True)  # chave no R2, quando status == done
+    error = Column(String, nullable=True)
+    runway_task_id = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=_now)
+    updated_at = Column(DateTime(timezone=True), default=_now, onupdate=_now)

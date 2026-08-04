@@ -19,3 +19,5 @@ stripe==11.4.1
 boto3==1.35.74
 redis==5.2.1
 rq==2.1.0
+httpx==0.28.1
+runwayml==5.13.0

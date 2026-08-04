@@ -6,7 +6,7 @@ from sqlalchemy import func
 
 from app.config import settings
 from app.db import SessionLocal
-from app.db_models import Analysis
+from app.db_models import Analysis, Optimization
 from app.models import AnalysisResult, AnalysisStatus
 
 DATA_DIR = Path(settings.data_dir)
@@ -170,6 +170,47 @@ def count_analyses_this_month(user_id: str) -> int:
             .scalar()
             or 0
         )
+
+
+def create_optimization(optimization_id: str, analysis_id: str, user_id: str, objective: str) -> None:
+    with SessionLocal() as db:
+        db.add(
+            Optimization(
+                id=optimization_id,
+                analysis_id=analysis_id,
+                user_id=user_id,
+                objective=objective,
+                status="queued",
+            )
+        )
+        db.commit()
+
+
+def set_optimization_status(
+    optimization_id: str, status: str, error: str | None = None, video_key: str | None = None,
+    runway_task_id: str | None = None,
+) -> None:
+    with SessionLocal() as db:
+        row = db.get(Optimization, optimization_id)
+        if row is None:
+            return
+        row.status = status
+        if error is not None:
+            row.error = error
+        if video_key is not None:
+            row.video_key = video_key
+        if runway_task_id is not None:
+            row.runway_task_id = runway_task_id
+        db.commit()
+
+
+def get_optimization(optimization_id: str) -> Optimization | None:
+    with SessionLocal() as db:
+        row = db.get(Optimization, optimization_id)
+        if row is None:
+            return None
+        db.expunge(row)
+        return row
 
 
 def list_trainable_ids() -> list[str]:

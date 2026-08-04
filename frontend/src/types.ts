@@ -107,6 +107,21 @@ export interface CurrentUser {
   plan: string | null
 }
 
+export type OptimizationObjective =
+  | 'Vendas/Conversão'
+  | 'Cliques/Tráfego'
+  | 'Engajamento'
+  | 'Reconhecimento de Marca/Alcance'
+  | 'Cadastro/Geração de Leads'
+
+export interface OptimizationStatus {
+  id: string
+  status: 'queued' | 'processing' | 'done' | 'error'
+  objective: string
+  error: string | null
+  video_url: string | null
+}
+
 export interface AdminStats {
   total_users: number
   subscribed_users: number

@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createOptimization, getOptimization } from '../api/client'
+import type { OptimizationObjective, OptimizationStatus } from '../types'
 
-const OBJECTIVES = [
+const OBJECTIVES: OptimizationObjective[] = [
   'Vendas/Conversão',
   'Cliques/Tráfego',
   'Engajamento',
   'Reconhecimento de Marca/Alcance',
   'Cadastro/Geração de Leads',
-] as const
-
-type Objective = (typeof OBJECTIVES)[number]
+]
 
 function SparkleIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
@@ -24,15 +24,59 @@ function SparkleIcon({ className = 'h-4 w-4' }: { className?: string }) {
   )
 }
 
-export function OptimizeVideoCard() {
-  const [objective, setObjective] = useState<Objective>(OBJECTIVES[0])
-  const [loading, setLoading] = useState(false)
+const STATUS_LABEL: Record<string, string> = {
+  queued: 'Na fila...',
+  processing: 'Gerando a versão otimizada... (pode levar alguns minutos)',
+}
 
-  function handleGenerate() {
-    // TODO: chamar o endpoint de otimização (ainda não implementado no backend).
-    setLoading(true)
-    window.setTimeout(() => setLoading(false), 1200)
+export function OptimizeVideoCard({ analysisId }: { analysisId: string }) {
+  const [objective, setObjective] = useState<OptimizationObjective>(OBJECTIVES[0])
+  const [job, setJob] = useState<OptimizationStatus | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
+  }, [])
+
+  function stopPolling() {
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = null
+    }
   }
+
+  async function handleGenerate() {
+    setError(null)
+    setJob(null)
+    try {
+      const created = await createOptimization(analysisId, objective)
+      setJob(created)
+      pollRef.current = setInterval(async () => {
+        try {
+          const updated = await getOptimization(created.id)
+          setJob(updated)
+          if (updated.status === 'done' || updated.status === 'error') {
+            stopPolling()
+          }
+        } catch (err) {
+          stopPolling()
+          setError(err instanceof Error ? err.message : 'Falha ao acompanhar a geração.')
+        }
+      }, 3000)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Não foi possível iniciar a geração.'
+      setError(
+        message.includes('administradores')
+          ? 'Esse recurso ainda está em teste — disponível só para administradores por enquanto.'
+          : message
+      )
+    }
+  }
+
+  const isBusy = job !== null && (job.status === 'queued' || job.status === 'processing')
 
   return (
     <div className="relative rounded-2xl border border-accent-line bg-accent-soft p-6 shadow-glow overflow-hidden">
@@ -61,8 +105,9 @@ export function OptimizeVideoCard() {
               <button
                 key={o}
                 type="button"
+                disabled={isBusy}
                 onClick={() => setObjective(o)}
-                className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
+                className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all disabled:opacity-50 ${
                   active
                     ? 'bg-accent text-white border-accent shadow-glow'
                     : 'bg-panel/60 text-ink-soft border-line hover:border-accent-line hover:text-ink'
@@ -75,15 +120,42 @@ export function OptimizeVideoCard() {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={handleGenerate}
-        disabled={loading}
-        className="relative w-full flex items-center justify-center gap-2 rounded-full bg-accent text-white px-6 py-3.5 font-medium text-sm shadow-glow hover:bg-accent-strong transition-all disabled:opacity-60"
-      >
-        <SparkleIcon className="h-4 w-4" />
-        {loading ? 'Gerando...' : `Gerar uma versão otimizada com todos os ajustes para ${objective}`}
-      </button>
+      {job?.status === 'done' && job.video_url ? (
+        <div className="relative space-y-3">
+          <video
+            src={job.video_url}
+            controls
+            className="w-full rounded-xl border border-line bg-black aspect-[9/16] max-h-[60vh] object-contain"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setJob(null)
+              setError(null)
+            }}
+            className="w-full rounded-full border border-line text-ink-soft hover:border-accent-line hover:text-ink px-6 py-3 font-medium text-sm transition-all"
+          >
+            Gerar outra versão
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={isBusy}
+          className="relative w-full flex items-center justify-center gap-2 rounded-full bg-accent text-white px-6 py-3.5 font-medium text-sm shadow-glow hover:bg-accent-strong transition-all disabled:opacity-60"
+        >
+          <SparkleIcon className="h-4 w-4" />
+          {isBusy
+            ? STATUS_LABEL[job.status] ?? 'Gerando...'
+            : `Gerar uma versão otimizada com todos os ajustes para ${objective}`}
+        </button>
+      )}
+
+      {job?.status === 'error' && (
+        <p className="relative text-danger text-xs mt-3">{job.error ?? 'Falha ao gerar a versão otimizada.'}</p>
+      )}
+      {error && <p className="relative text-danger text-xs mt-3">{error}</p>}
     </div>
   )
 }
