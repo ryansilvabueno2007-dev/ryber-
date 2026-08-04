@@ -52,5 +52,8 @@ class Settings(BaseSettings):
     # Fila de processamento (RQ + Redis do Upstash em produção).
     redis_url: str = "redis://localhost:6379/0"
 
+    # Runway (geração/edição de vídeo por IA) — dev.runwayml.com.
+    runwayml_api_secret: str = ""
+
 
 settings = Settings()
