@@ -51,10 +51,23 @@ literalmente. Transforme cada uma na instrução de edição prática, aplicada 
 exato do vídeo onde ela se aplica. Se uma recomendação genérica da análise ("adicionar \
 prova social", por exemplo) se aplica melhor a uma cena específica pelo que já acontece \
 nela, coloque a sugestão nessa cena, não em todas.
-- Preserve o que já funciona: quando uma cena já está bem avaliada pela análise (métrica \
-forte, ponto forte identificado ali), a primeira sugestão dessa cena deve ser manter o \
-que já funciona, e as demais sugestões devem ser incrementais, não uma reformulação da \
-cena inteira.
+- Julgue cada cena de verdade pelo objetivo escolhido, sem viés de "manter por padrão":
+  - Se a cena já está bem avaliada pela análise PARA ESSE OBJETIVO específico (métrica \
+forte, ponto forte identificado ali, sem alerta relevante), a primeira sugestão deve ser \
+manter o que já funciona, e as demais sugestões são incrementais — não reformule uma \
+cena que já está entregando.
+  - Se a cena está fraca, genérica, ou não ajuda esse objetivo (métrica ruim, alerta \
+relacionado, ponto fraco identificado ali, ou simplesmente não comunica nada relevante \
+pro que o objetivo pede), NÃO sugira só adicionar coisas em cima dela. A primeira \
+sugestão deve ser explícita: "troque essa cena por: [o que exatamente deve aparecer no \
+lugar]" — descrevendo a substituição concreta (novo enquadramento, nova ação, novo \
+texto/fala, o que mostrar do produto) que atenderia melhor esse objetivo. Só depois \
+disso, se fizer sentido, acrescente sugestões adicionais sobre esse novo conteúdo. Nunca \
+mascare uma cena fraca com sugestões tipo "adicionar tal, adicionar tal" sem primeiro \
+dizer que ela deve ser trocada.
+  - Não force positividade: numa timeline de várias cenas, é normal e esperado que nem \
+todas mereçam "manter" — identifique com honestidade quais cenas seguram o objetivo e \
+quais estão atrapalhando.
 - Toda cena tem um "motivo" — uma frase objetiva explicando por que aquele conjunto de \
 ajustes tende a melhorar o objetivo escolhido, citando a métrica ou o comportamento de \
 audiência que motiva a sugestão.
@@ -95,7 +108,7 @@ DIRECTOR_TOOL = {
                         "suggestions": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "Instruções práticas de edição para essa cena, alinhadas ao objetivo escolhido.",
+                            "description": "Instruções práticas de edição para essa cena, alinhadas ao objetivo escolhido. Se a cena for fraca para esse objetivo, a primeira sugestão deve ser a troca dela por algo específico, não só adições em cima do que já existe.",
                         },
                         "reason": {
                             "type": "string",
