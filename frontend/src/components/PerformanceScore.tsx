@@ -35,7 +35,10 @@ export function PerformanceScore({ score, reasoning, breakdown, improvements }: 
   const band = bandFor(pct)
 
   return (
-    <div className="rounded-2xl border border-line bg-panel p-6 shadow-card shadow-card-hover transition-all duration-300 hover:border-white/[0.14]">
+    <div
+      data-pdf-block
+      className="rounded-2xl border border-line bg-panel p-6 shadow-card shadow-card-hover transition-all duration-300 hover:border-white/[0.14]"
+    >
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-4">
         Chance de performar bem em tráfego pago
       </div>

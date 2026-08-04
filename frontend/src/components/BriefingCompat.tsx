@@ -28,7 +28,7 @@ function BriefingItem({ item }: { item: BriefingItemEvaluation }) {
   const isExcellent = item.status === 'excelente'
 
   return (
-    <div className="rounded-xl border border-line bg-panel-raised/40 p-4">
+    <div data-pdf-block className="rounded-xl border border-line bg-panel-raised/40 p-4">
       <div className="flex items-center justify-between gap-2 mb-2">
         <span className="font-medium text-sm">{item.item}</span>
         <span
@@ -63,7 +63,10 @@ function BriefingItem({ item }: { item: BriefingItemEvaluation }) {
 export function BriefingCompat({ compat }: { compat: BriefingCompatibility }) {
   const pct = Math.round(compat.overall_score * 100)
   return (
-    <div className="rounded-2xl border border-line bg-panel p-6 shadow-card shadow-card-hover transition-all duration-300 hover:border-white/[0.14]">
+    <div
+      data-pdf-block
+      className="rounded-2xl border border-line bg-panel p-6 shadow-card shadow-card-hover transition-all duration-300 hover:border-white/[0.14]"
+    >
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-4">
         Compatibilidade com briefing
       </div>

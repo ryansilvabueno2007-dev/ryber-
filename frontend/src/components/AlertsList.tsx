@@ -16,7 +16,10 @@ function WarningIcon() {
 export function AlertsList({ alerts }: { alerts: string[] }) {
   if (alerts.length === 0) return null
   return (
-    <div className="rounded-2xl border border-warn/20 bg-warn-soft p-5 shadow-card shadow-card-hover transition-all duration-300">
+    <div
+      data-pdf-block
+      className="rounded-2xl border border-warn/20 bg-warn-soft p-5 shadow-card shadow-card-hover transition-all duration-300"
+    >
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-warn mb-3">Alertas</div>
       <ul className="space-y-2.5">
         {alerts.map((alert, i) => (

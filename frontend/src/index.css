@@ -117,6 +117,34 @@ body {
   color: transparent;
 }
 
+/* Tema claro usado só na exportação de PDF (impressão) — aplicado temporariamente
+   ao elemento do relatório antes do html2canvas capturar, depois removido. Mesmos
+   tokens de cor, valores de tema claro, então todo componente já herda sem precisar
+   de nenhuma classe condicional no JSX. */
+.pdf-light {
+  --color-canvas: #fafafa;
+  --color-panel: #ffffff;
+  --color-panel-raised: #f2f2f5;
+  --color-line: #e5e5ea;
+  --color-ink: #0b0c0f;
+  --color-ink-soft: #4b4f58;
+  --color-ink-faint: #82858d;
+  --color-accent: #5b46d6;
+  --color-accent-strong: #4433c4;
+  --color-accent-soft: #eeecfc;
+  --color-accent-line: #d9d2f5;
+  --color-blue: #2f6fed;
+  --color-blue-soft: #eaf1fe;
+  --color-warn: #b45309;
+  --color-warn-soft: #fef3e0;
+  --color-danger: #c0392b;
+  --color-danger-soft: #fbeae8;
+  --color-success: #16794f;
+  --color-success-soft: #e7f6ef;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
 @keyframes pulse-soft {
   0%,
   100% {
