@@ -210,6 +210,22 @@ def get_optimization(optimization_id: str) -> Optimization | None:
         return row
 
 
+def list_optimizations_for_analysis(analysis_id: str, user_id: str) -> list[Optimization]:
+    """Todo o histórico de roteiros já gerados pra essa análise (mais recente primeiro) —
+    usada tanto pra mostrar o histórico completo quanto pra travar o recurso em uma
+    geração por vídeo pra quem não é admin (cada chamada tem custo real de IA)."""
+    with SessionLocal() as db:
+        rows = (
+            db.query(Optimization)
+            .filter(Optimization.analysis_id == analysis_id, Optimization.user_id == user_id)
+            .order_by(Optimization.created_at.desc())
+            .all()
+        )
+        for row in rows:
+            db.expunge(row)
+        return rows
+
+
 def list_trainable_ids() -> list[str]:
     """IDs que têm tanto o resultado original quanto uma correção humana."""
     with SessionLocal() as db:

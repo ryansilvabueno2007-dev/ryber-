@@ -154,6 +154,11 @@ export async function getOptimization(id: string): Promise<OptimizationStatus> {
   return asJson(res)
 }
 
+export async function listOptimizations(analysisId: string): Promise<OptimizationStatus[]> {
+  const res = await fetch(`${BASE_URL}/api/analyses/${analysisId}/optimizations`, { credentials: 'include' })
+  return asJson(res)
+}
+
 export async function saveCorrection(
   id: string,
   correction: AnalysisResult
