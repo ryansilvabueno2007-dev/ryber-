@@ -42,6 +42,12 @@ export function Header({ right }: { right?: ReactNode }) {
               >
                 Histórico
               </Link>
+              <Link
+                to="/planos"
+                className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
+              >
+                Planos
+              </Link>
               {user.is_admin && (
                 <Link
                   to="/admin"
