@@ -110,6 +110,7 @@ export interface DashboardStats {
   name: string | null
   plan: string | null
   plan_renews_at: string | null
+  plan_canceled: boolean
   is_subscribed: boolean
   analyses_used: number
   analyses_quota: number | null
