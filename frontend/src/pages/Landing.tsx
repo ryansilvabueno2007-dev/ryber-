@@ -297,21 +297,42 @@ function PlanCard({ plan, highlight }: { plan: Plan; highlight?: boolean }) {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showCpfModal, setShowCpfModal] = useState(false)
+  const [cpfInput, setCpfInput] = useState('')
 
-  async function handleClick() {
-    if (!user) {
-      navigate('/signup')
-      return
-    }
+  async function startCheckout(cpfCnpj?: string) {
     setError(null)
     setLoading(true)
     try {
-      const { url } = await createCheckoutSession(plan.id)
+      const { url } = await createCheckoutSession(plan.id, cpfCnpj)
       window.location.href = url
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível abrir o checkout.')
       setLoading(false)
     }
+  }
+
+  function handleClick() {
+    if (!user) {
+      navigate('/signup')
+      return
+    }
+    if (!user.cpf_cnpj) {
+      setError(null)
+      setShowCpfModal(true)
+      return
+    }
+    startCheckout()
+  }
+
+  function handleConfirmCpf() {
+    const doc = cpfInput.replace(/\D/g, '')
+    if (doc.length !== 11 && doc.length !== 14) {
+      setError('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.')
+      return
+    }
+    setShowCpfModal(false)
+    startCheckout(doc)
   }
 
   return (
@@ -361,6 +382,42 @@ function PlanCard({ plan, highlight }: { plan: Plan; highlight?: boolean }) {
           {loading ? 'Abrindo...' : 'Assinar'}
         </button>
       </div>
+
+      {showCpfModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="relative w-full max-w-sm rounded-2xl border border-line bg-panel p-6 shadow-glow">
+            <div className="text-sm font-semibold text-ink tracking-tight mb-1.5">CPF ou CNPJ pra pagamento</div>
+            <p className="text-xs text-ink-soft mb-4">
+              Precisamos do seu CPF ou CNPJ pra gerar a cobrança da assinatura. Só pedimos uma vez.
+            </p>
+            <input
+              type="text"
+              value={cpfInput}
+              onChange={(e) => setCpfInput(e.target.value)}
+              placeholder="000.000.000-00"
+              className="w-full rounded-lg border border-line bg-panel-raised text-ink text-sm px-3.5 py-2.5 mb-3 outline-none focus:border-accent-line"
+              autoFocus
+            />
+            {error && <p className="text-danger text-xs mb-3">{error}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCpfModal(false)}
+                className="flex-1 rounded-full border border-line text-ink-soft hover:text-ink px-4 py-2.5 text-xs font-medium transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCpf}
+                className="flex-1 rounded-full bg-accent text-white px-4 py-2.5 text-xs font-medium shadow-glow hover:bg-accent-strong transition-all"
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -22,7 +22,9 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
     is_admin = Column(Boolean, nullable=False, default=False)
-    stripe_customer_id = Column(String, nullable=True)
+    cpf_cnpj = Column(String, nullable=True)  # exigido pela Asaas pra criar o cliente/assinatura
+    asaas_customer_id = Column(String, nullable=True)
+    asaas_subscription_id = Column(String, nullable=True)
     is_subscribed = Column(Boolean, nullable=False, default=False)
     plan = Column(String, nullable=True)  # "start" | "platinum" | "gold"
     created_at = Column(DateTime(timezone=True), default=_now)

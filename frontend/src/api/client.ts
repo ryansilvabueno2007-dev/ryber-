@@ -50,12 +50,12 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   return asJson(res)
 }
 
-export async function createCheckoutSession(plan: string): Promise<{ url: string }> {
+export async function createCheckoutSession(plan: string, cpfCnpj?: string): Promise<{ url: string }> {
   const res = await fetch(`${BASE_URL}/api/billing/checkout`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ plan }),
+    body: JSON.stringify({ plan, cpf_cnpj: cpfCnpj ?? null }),
   })
   return asJson(res)
 }

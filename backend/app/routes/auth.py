@@ -27,6 +27,7 @@ class UserResponse(BaseModel):
     is_subscribed: bool
     is_admin: bool
     plan: str | None
+    cpf_cnpj: str | None
 
 
 def _set_session_cookie(response: Response, token: str) -> None:
@@ -60,7 +61,12 @@ async def signup(payload: SignupRequest, response: Response, db: DBSession = Dep
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
     return UserResponse(
-        id=user.id, email=user.email, is_subscribed=user.is_subscribed, is_admin=user.is_admin, plan=user.plan
+        id=user.id,
+        email=user.email,
+        is_subscribed=user.is_subscribed,
+        is_admin=user.is_admin,
+        plan=user.plan,
+        cpf_cnpj=user.cpf_cnpj,
     )
 
 
@@ -73,7 +79,12 @@ async def login(payload: LoginRequest, response: Response, db: DBSession = Depen
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
     return UserResponse(
-        id=user.id, email=user.email, is_subscribed=user.is_subscribed, is_admin=user.is_admin, plan=user.plan
+        id=user.id,
+        email=user.email,
+        is_subscribed=user.is_subscribed,
+        is_admin=user.is_admin,
+        plan=user.plan,
+        cpf_cnpj=user.cpf_cnpj,
     )
 
 
@@ -92,5 +103,10 @@ async def logout(
 @router.get("/me", response_model=UserResponse)
 async def me(user: User = Depends(auth.require_user)) -> UserResponse:
     return UserResponse(
-        id=user.id, email=user.email, is_subscribed=user.is_subscribed, is_admin=user.is_admin, plan=user.plan
+        id=user.id,
+        email=user.email,
+        is_subscribed=user.is_subscribed,
+        is_admin=user.is_admin,
+        plan=user.plan,
+        cpf_cnpj=user.cpf_cnpj,
     )

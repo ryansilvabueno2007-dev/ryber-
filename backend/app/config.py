@@ -36,11 +36,12 @@ class Settings(BaseSettings):
     # inicialização — permite dar acesso de admin sem precisar de shell no servidor.
     admin_emails: str = ""
 
-    stripe_secret_key: str = ""
-    stripe_webhook_secret: str = ""
-    stripe_price_id_start: str = ""
-    stripe_price_id_platinum: str = ""
-    stripe_price_id_gold: str = ""
+    # Asaas (cobrança/assinatura) — ambiente controla a base URL da API (sandbox/produção).
+    asaas_api_key: str = ""
+    asaas_env: str = "sandbox"  # "sandbox" ou "production"
+    # Token que a própria Asaas envia de volta no header "asaas-access-token" de cada
+    # webhook — configurado por você no painel deles ao criar o webhook, não é a API key.
+    asaas_webhook_token: str = ""
     frontend_url: str = "http://localhost:5173"
 
     # Cloudflare R2 (armazenamento de vídeos/imagens/frames — S3-compatible).
@@ -51,9 +52,6 @@ class Settings(BaseSettings):
 
     # Fila de processamento (RQ + Redis do Upstash em produção).
     redis_url: str = "redis://localhost:6379/0"
-
-    # Runway (geração/edição de vídeo por IA) — dev.runwayml.com.
-    runwayml_api_secret: str = ""
 
 
 settings = Settings()

@@ -105,6 +105,7 @@ export interface CurrentUser {
   is_subscribed: boolean
   is_admin: boolean
   plan: string | null
+  cpf_cnpj: string | null
 }
 
 export type OptimizationObjective =
