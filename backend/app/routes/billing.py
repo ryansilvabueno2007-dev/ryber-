@@ -69,6 +69,7 @@ async def create_checkout_session(
         value=value,
         external_reference=user.id,
         next_due_date=date.today().isoformat(),
+        success_url=f"{settings.frontend_url}/billing/success",
     )
     subscription_id = subscription["id"]
 

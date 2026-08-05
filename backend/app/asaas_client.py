@@ -36,7 +36,9 @@ def create_customer(name: str, cpf_cnpj: str, email: str, external_reference: st
     return resp.json()
 
 
-def create_subscription(customer_id: str, value: float, external_reference: str, next_due_date: str) -> dict:
+def create_subscription(
+    customer_id: str, value: float, external_reference: str, next_due_date: str, success_url: str
+) -> dict:
     resp = httpx.post(
         f"{_base_url()}/subscriptions",
         headers=_headers(),
@@ -47,6 +49,9 @@ def create_subscription(customer_id: str, value: float, external_reference: str,
             "nextDueDate": next_due_date,
             "cycle": "MONTHLY",
             "externalReference": external_reference,
+            # Sem isso, depois de pagar a pessoa fica parada na aba da fatura da Asaas,
+            # sem voltar pro site sozinha.
+            "callback": {"successUrl": success_url, "autoRedirect": True},
         },
         timeout=30,
     )
