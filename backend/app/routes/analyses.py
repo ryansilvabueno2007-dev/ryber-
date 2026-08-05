@@ -19,6 +19,7 @@ from app.models import (
 from app.pipeline import tasks
 from app.queue import queue
 from app.rate_limit import limiter
+from app.subscription import is_plan_active
 
 router = APIRouter(prefix="/api", tags=["analyses"])
 
@@ -35,7 +36,7 @@ def _require_owned(analysis_id: str, user: User) -> None:
 def _check_quota(user: User) -> None:
     if user.is_admin:
         return
-    if not user.is_subscribed or not user.plan:
+    if not is_plan_active(user) or not user.plan:
         # Sem assinatura: libera exatamente 1 análise grátis (a vida inteira da conta,
         # não por mês) antes de exigir plano.
         if storage.count_all_analyses(user.id) >= 1:

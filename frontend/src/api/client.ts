@@ -71,6 +71,19 @@ export async function createCheckoutSession(plan: string, cpfCnpj?: string): Pro
   return asJson(res)
 }
 
+export async function cancelSubscription(
+  experience: 'boa' | 'ruim',
+  reason: string
+): Promise<{ access_until: string | null }> {
+  const res = await fetch(`${BASE_URL}/api/billing/cancel`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ experience, reason }),
+  })
+  return asJson(res)
+}
+
 export async function listAnalyses(): Promise<AnalysisSummary[]> {
   const res = await fetch(`${BASE_URL}/api/analyses`, { credentials: 'include' })
   return asJson(res)

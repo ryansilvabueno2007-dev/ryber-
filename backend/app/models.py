@@ -152,6 +152,7 @@ class DashboardStats(BaseModel):
     name: Optional[str] = None
     plan: Optional[str] = None
     plan_renews_at: Optional[str] = None
+    plan_canceled: bool = False
     is_subscribed: bool = False
     analyses_used: int = 0
     analyses_quota: Optional[int] = None

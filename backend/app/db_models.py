@@ -28,7 +28,10 @@ class User(Base):
     asaas_subscription_id = Column(String, nullable=True)
     is_subscribed = Column(Boolean, nullable=False, default=False)
     plan = Column(String, nullable=True)  # "start" | "gold" | "platinum" | "titanium" | "infinity"
-    plan_renews_at = Column(Date, nullable=True)  # próxima data de cobrança/renovação do plano atual
+    # Enquanto não cancelado, é a próxima data de cobrança. Depois de cancelar
+    # (plan_canceled=True), vira a data em que o acesso realmente termina.
+    plan_renews_at = Column(Date, nullable=True)
+    plan_canceled = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), default=_now)
 
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
@@ -63,6 +66,21 @@ class Analysis(Base):
     updated_at = Column(DateTime(timezone=True), default=_now, onupdate=_now)
 
     user = relationship("User", back_populates="analyses")
+
+
+class CancellationFeedback(Base):
+    """Enquete respondida antes de liberar o cancelamento de vez — usada só pra
+    entender motivo/experiência, não trava nem afeta o cancelamento em si depois de
+    respondida."""
+
+    __tablename__ = "cancellation_feedback"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    plan = Column(String, nullable=True)
+    experience = Column(String, nullable=False)  # "boa" | "ruim"
+    reason = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_now)
 
 
 class Optimization(Base):

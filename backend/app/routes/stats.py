@@ -7,6 +7,7 @@ from app.auth import require_user
 from app.db_models import User
 from app.models import DashboardStats, ScoreTrendPoint
 from app.routes.analyses import PLAN_QUOTAS
+from app.subscription import is_plan_active
 
 router = APIRouter(prefix="/api", tags=["stats"])
 
@@ -70,22 +71,24 @@ async def get_dashboard_stats(user: User = Depends(require_user)) -> DashboardSt
         weakest_objective = max(fraco_counts, key=fraco_counts.get)
         weakest_ratio = (fraco_counts[weakest_objective], analytics["objective_total_counts"][weakest_objective])
 
+    plan_active = is_plan_active(user)
     if user.is_admin:
         quota, used = None, analytics["total_analyses"]
-    elif user.plan:
-        # Assinante: cota mensal, reseta todo mês.
+    elif user.plan and plan_active:
+        # Assinante com plano ativo: cota mensal, reseta todo mês.
         quota, used = PLAN_QUOTAS.get(user.plan), storage.count_analyses_this_month(user.id)
     else:
-        # Sem plano: a única "cota" é a análise grátis vitalícia (1 análise, nunca reseta)
-        # — contar por mês aqui mostraria "0 de 1" pra quem já usou o teste há mais de um
-        # mês, dando a entender (errado) que ainda sobra uma análise.
+        # Sem plano ativo (nunca assinou, ou assinatura cancelada e já expirada): a
+        # única "cota" é a análise grátis vitalícia (1 análise, nunca reseta) — contar
+        # por mês aqui mostraria "0 de 1" indevidamente pra quem já usou há tempos.
         quota, used = 1, analytics["total_analyses"]
 
     return DashboardStats(
         name=user.name,
         plan=user.plan,
         plan_renews_at=user.plan_renews_at.isoformat() if user.plan_renews_at else None,
-        is_subscribed=user.is_subscribed,
+        plan_canceled=user.plan_canceled,
+        is_subscribed=plan_active,
         analyses_used=used,
         analyses_quota=quota,
         total_analyses=analytics["total_analyses"],

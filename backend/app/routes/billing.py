@@ -1,13 +1,15 @@
 import calendar
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
+from pydantic import BaseModel
 
 from app import asaas_client
 from app.auth import require_user
 from app.config import settings
 from app.db import SessionLocal
-from app.db_models import User
+from app.db_models import CancellationFeedback, User
 
 router = APIRouter(prefix="/api/billing", tags=["billing"])
 
@@ -83,6 +85,7 @@ async def create_checkout_session(
         db_user.asaas_subscription_id = subscription_id
         db_user.plan = plan
         db_user.plan_renews_at = _add_month(date.today())
+        db_user.plan_canceled = False  # nova assinatura (ou reassinatura) — cancelamento anterior não vale mais
         db.commit()
 
     payments = asaas_client.get_subscription_payments(subscription_id)
@@ -90,6 +93,49 @@ async def create_checkout_session(
         raise HTTPException(502, "Não foi possível gerar a cobrança inicial da assinatura.")
 
     return {"url": payments[0]["invoiceUrl"]}
+
+
+class CancelSubscriptionRequest(BaseModel):
+    experience: Literal["boa", "ruim"]
+    reason: str
+
+
+@router.post("/cancel")
+async def cancel_subscription(
+    payload: CancelSubscriptionRequest, user: User = Depends(require_user)
+) -> dict:
+    reason = payload.reason.strip()
+    if not reason:
+        raise HTTPException(400, "Conta pra gente o motivo do cancelamento.")
+
+    with SessionLocal() as db:
+        db_user = db.get(User, user.id)
+        if not db_user.asaas_subscription_id or db_user.plan_canceled:
+            raise HTTPException(409, "Você não tem uma assinatura ativa pra cancelar.")
+        subscription_id = db_user.asaas_subscription_id
+        access_until = db_user.plan_renews_at
+
+        db.add(
+            CancellationFeedback(
+                user_id=db_user.id, plan=db_user.plan, experience=payload.experience, reason=reason
+            )
+        )
+        db.commit()
+
+    try:
+        asaas_client.cancel_subscription(subscription_id)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            502, "Não foi possível cancelar a assinatura agora. Tente de novo em instantes."
+        ) from exc
+
+    with SessionLocal() as db:
+        db_user = db.get(User, user.id)
+        db_user.plan_canceled = True
+        db_user.asaas_subscription_id = None
+        db.commit()
+
+    return {"access_until": access_until.isoformat() if access_until else None}
 
 
 @router.post("/webhook")

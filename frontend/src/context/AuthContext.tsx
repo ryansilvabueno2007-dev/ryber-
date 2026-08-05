@@ -9,6 +9,7 @@ interface AuthContextValue {
   signup: (name: string, email: string, password: string) => Promise<void>
   loginWithGoogle: (idToken: string, createIfMissing: boolean) => Promise<void>
   logout: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -44,8 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  const refreshUser = useCallback(async () => {
+    const current = await api.getCurrentUser()
+    setUser(current)
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, loginWithGoogle, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

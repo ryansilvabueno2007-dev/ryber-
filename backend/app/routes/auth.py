@@ -11,6 +11,7 @@ from app.config import settings
 from app.db import get_db
 from app.db_models import User
 from app.rate_limit import limiter
+from app.subscription import is_plan_active
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -40,6 +41,8 @@ class UserResponse(BaseModel):
     is_subscribed: bool
     is_admin: bool
     plan: str | None
+    plan_renews_at: str | None
+    plan_canceled: bool
     cpf_cnpj: str | None
 
 
@@ -48,9 +51,11 @@ def _to_user_response(user: User) -> UserResponse:
         id=user.id,
         email=user.email,
         name=user.name,
-        is_subscribed=user.is_subscribed,
+        is_subscribed=is_plan_active(user),
         is_admin=user.is_admin,
         plan=user.plan,
+        plan_renews_at=user.plan_renews_at.isoformat() if user.plan_renews_at else None,
+        plan_canceled=user.plan_canceled,
         cpf_cnpj=user.cpf_cnpj,
     )
 

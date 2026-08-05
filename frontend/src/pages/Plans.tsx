@@ -1,6 +1,14 @@
+import { useState } from 'react'
 import { Header } from '../components/Header'
 import { PlanCard } from '../components/PlanCard'
+import { CancelSubscriptionModal } from '../components/CancelSubscriptionModal'
+import { useAuth } from '../context/AuthContext'
 import { PLANS, PLAN_FEATURES } from '../data/plans'
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
 
 const TRUST_POINTS = [
   { title: 'Sem fidelidade', text: 'Assinatura mensal, cancele quando quiser.' },
@@ -25,6 +33,10 @@ const FAQ = [
     q: 'O que acontece se eu passar da minha cota de análises no mês?',
     a: 'Você pode aguardar o próximo ciclo mensal ou mudar para um plano com uma cota maior a qualquer momento.',
   },
+  {
+    q: 'Como funciona o cancelamento?',
+    a: 'Você pode cancelar quando quiser, direto nesta página. A cobrança para de renovar, mas você continua com acesso ao plano até o fim do período que já foi pago.',
+  },
 ]
 
 function TrustIcon() {
@@ -36,6 +48,13 @@ function TrustIcon() {
 }
 
 export function Plans() {
+  const { user } = useAuth()
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [canceledUntil, setCanceledUntil] = useState<string | null>(null)
+
+  const justCanceled = canceledUntil !== null
+  const isCanceled = justCanceled || (user?.plan_canceled ?? false)
+
   return (
     <div className="min-h-full flex flex-col relative overflow-hidden">
       <div className="absolute inset-0 bg-grid opacity-20 pointer-events-none" />
@@ -78,6 +97,37 @@ export function Plans() {
             <PlanCard key={plan.id} plan={plan} highlight={plan.id === 'titanium'} features={PLAN_FEATURES} />
           ))}
         </div>
+
+        {/* Gerenciar assinatura */}
+        {user?.is_subscribed && (
+          <div className="max-w-md mx-auto text-center mb-20">
+            {isCanceled ? (
+              <p className="text-sm text-ink-soft">
+                Sua assinatura foi cancelada e não vai renovar. Você continua com acesso ao plano até{' '}
+                <span className="text-ink font-medium">{formatDate(canceledUntil ?? user?.plan_renews_at ?? null)}</span>.
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowCancelModal(true)}
+                className="text-sm text-ink-faint hover:text-danger underline underline-offset-2 transition-colors"
+              >
+                Cancelar assinatura
+              </button>
+            )}
+          </div>
+        )}
+
+        {showCancelModal && (
+          <CancelSubscriptionModal
+            renewsAt={user?.plan_renews_at ?? null}
+            onClose={() => setShowCancelModal(false)}
+            onCanceled={(accessUntil) => {
+              setShowCancelModal(false)
+              setCanceledUntil(accessUntil ?? user?.plan_renews_at ?? null)
+            }}
+          />
+        )}
 
         {/* FAQ */}
         <div className="max-w-2xl mx-auto">

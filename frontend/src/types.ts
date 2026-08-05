@@ -130,6 +130,8 @@ export interface CurrentUser {
   is_subscribed: boolean
   is_admin: boolean
   plan: string | null
+  plan_renews_at: string | null
+  plan_canceled: boolean
   cpf_cnpj: string | null
 }
 
