@@ -151,6 +151,7 @@ class ScoreTrendPoint(BaseModel):
 class DashboardStats(BaseModel):
     name: Optional[str] = None
     plan: Optional[str] = None
+    plan_renews_at: Optional[str] = None
     is_subscribed: bool = False
     analyses_used: int = 0
     analyses_quota: Optional[int] = None

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String, Text
+from sqlalchemy import JSON, Boolean, Column, Date, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
 
 from app.db import Base
@@ -28,6 +28,7 @@ class User(Base):
     asaas_subscription_id = Column(String, nullable=True)
     is_subscribed = Column(Boolean, nullable=False, default=False)
     plan = Column(String, nullable=True)  # "start" | "gold" | "platinum" | "titanium" | "infinity"
+    plan_renews_at = Column(Date, nullable=True)  # próxima data de cobrança/renovação do plano atual
     created_at = Column(DateTime(timezone=True), default=_now)
 
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")

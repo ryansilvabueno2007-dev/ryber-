@@ -109,6 +109,7 @@ export interface ScoreTrendPoint {
 export interface DashboardStats {
   name: string | null
   plan: string | null
+  plan_renews_at: string | null
   is_subscribed: boolean
   analyses_used: number
   analyses_quota: number | null

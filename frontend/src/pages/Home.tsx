@@ -129,22 +129,39 @@ export function Home() {
                   Última análise: <span className="text-ink font-medium">{formatDate(stats?.last_analysis_at ?? null)}</span>
                 </span>
               </div>
+              {remaining === 0 && stats?.is_subscribed && (
+                <p className="text-xs text-ink-soft mt-2">
+                  Faça upgrade de plano ou aguarde a renovação em{' '}
+                  <span className="text-ink font-medium">{formatDate(stats?.plan_renews_at ?? null)}</span>.
+                </p>
+              )}
             </div>
+
             {remaining === 0 ? (
               <button
                 onClick={() => navigate('/planos')}
                 className="shrink-0 inline-flex items-center gap-2 rounded-full bg-accent text-white px-5 py-3 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all"
               >
-                Assine para continuar usando
+                {stats?.is_subscribed ? 'Fazer upgrade' : 'Assine para continuar usando'}
               </button>
             ) : (
-              <button
-                onClick={() => navigate('/analyze')}
-                className="shrink-0 inline-flex items-center gap-2 rounded-full bg-accent text-white px-5 py-3 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all"
-              >
-                <PlusIcon />
-                Nova análise
-              </button>
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => navigate('/analyze')}
+                  className="shrink-0 inline-flex items-center gap-2 rounded-full bg-accent text-white px-5 py-3 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all"
+                >
+                  <PlusIcon />
+                  Nova análise
+                </button>
+                {stats?.is_subscribed && stats.plan !== 'infinity' && (
+                  <button
+                    onClick={() => navigate('/planos')}
+                    className="shrink-0 rounded-full border border-accent-line text-ink px-5 py-3 text-sm font-medium hover:bg-accent-soft transition-all"
+                  >
+                    Fazer upgrade
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -1,3 +1,4 @@
+import calendar
 from datetime import date
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
@@ -19,6 +20,16 @@ _PLAN_PRICES: dict[str, float] = {
     "titanium": 569.90,
     "infinity": 1499.90,
 }
+
+
+def _add_month(d: date) -> date:
+    """Mesmo dia no mês seguinte, ajustando pro fim do mês quando o dia não existe
+    (ex: 31/01 + 1 mês = 28 ou 29/02)."""
+    month = d.month + 1
+    year = d.year + (month - 1) // 12
+    month = (month - 1) % 12 + 1
+    day = min(d.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
 
 
 @router.post("/checkout")
@@ -71,6 +82,7 @@ async def create_checkout_session(
         db_user = db.get(User, user.id)
         db_user.asaas_subscription_id = subscription_id
         db_user.plan = plan
+        db_user.plan_renews_at = _add_month(date.today())
         db.commit()
 
     payments = asaas_client.get_subscription_payments(subscription_id)
@@ -94,13 +106,15 @@ async def asaas_webhook(request: Request) -> dict:
     body = await request.json()
     event = body.get("event", "")
 
-    def _set_subscribed(subscription_id: str | None, value: bool) -> None:
+    def _set_subscribed(subscription_id: str | None, value: bool, renews_at: date | None = None) -> None:
         if not subscription_id:
             return
         with SessionLocal() as db:
             db_user = db.query(User).filter(User.asaas_subscription_id == subscription_id).first()
             if db_user is not None:
                 db_user.is_subscribed = value
+                if renews_at is not None:
+                    db_user.plan_renews_at = renews_at
                 db.commit()
 
     # Dois sinais independentes pro mesmo estado — evento de cobrança (sempre chega,
@@ -108,7 +122,16 @@ async def asaas_webhook(request: Request) -> dict:
     # ex: cancelamento manual antes do próximo vencimento).
     if event in ("PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"):
         payment = body.get("payment") or {}
-        _set_subscribed(payment.get("subscription"), True)
+        # dueDate é o vencimento dessa cobrança que acabou de ser paga — a próxima
+        # (o que mostramos como "renova em") cai um mês depois dela.
+        renews_at = None
+        due_date = payment.get("dueDate")
+        if due_date:
+            try:
+                renews_at = _add_month(date.fromisoformat(due_date))
+            except ValueError:
+                renews_at = None
+        _set_subscribed(payment.get("subscription"), True, renews_at)
 
     elif event in ("PAYMENT_OVERDUE", "PAYMENT_REFUNDED", "PAYMENT_DELETED"):
         payment = body.get("payment") or {}

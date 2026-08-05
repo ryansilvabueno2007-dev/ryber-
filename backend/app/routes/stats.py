@@ -84,6 +84,7 @@ async def get_dashboard_stats(user: User = Depends(require_user)) -> DashboardSt
     return DashboardStats(
         name=user.name,
         plan=user.plan,
+        plan_renews_at=user.plan_renews_at.isoformat() if user.plan_renews_at else None,
         is_subscribed=user.is_subscribed,
         analyses_used=used,
         analyses_quota=quota,

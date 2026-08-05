@@ -61,6 +61,9 @@ export function PlanCard({ plan, highlight, features }: { plan: Plan; highlight?
     startCheckout(doc)
   }
 
+  const isCurrentPlan = !!user?.plan && user.plan === plan.id
+  const buttonLabel = loading ? 'Abrindo...' : user?.plan ? 'Fazer upgrade' : 'Assinar'
+
   return (
     <div
       className={`relative rounded-2xl border bg-panel text-left overflow-hidden flex flex-col transition-all duration-300 ${
@@ -97,13 +100,19 @@ export function PlanCard({ plan, highlight, features }: { plan: Plan; highlight?
           ))}
         </ul>
         {error && <p className="text-danger text-xs mb-3">{error}</p>}
-        <button
-          onClick={handleClick}
-          disabled={loading}
-          className="block text-center rounded-full px-5 py-3 font-medium uppercase tracking-wide text-xs transition-all disabled:opacity-60 bg-accent text-white shadow-glow hover:bg-accent-strong"
-        >
-          {loading ? 'Abrindo...' : 'Assinar'}
-        </button>
+        {isCurrentPlan ? (
+          <div className="block text-center rounded-full px-5 py-3 font-semibold uppercase tracking-wide text-xs border border-accent-line text-accent-strong bg-accent-soft">
+            Atual
+          </div>
+        ) : (
+          <button
+            onClick={handleClick}
+            disabled={loading}
+            className="block text-center rounded-full px-5 py-3 font-medium uppercase tracking-wide text-xs transition-all disabled:opacity-60 bg-accent text-white shadow-glow hover:bg-accent-strong"
+          >
+            {buttonLabel}
+          </button>
+        )}
       </div>
 
       {showCpfModal && (
