@@ -172,10 +172,8 @@ def count_analyses_this_month(user_id: str, plan_started_at=None) -> int:
     cota do plano pago se as duas acontecerem no mesmo mês calendário."""
     now = datetime.now(timezone.utc)
     since = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    if plan_started_at:
-        plan_start_dt = datetime.combine(plan_started_at, datetime.min.time(), tzinfo=timezone.utc)
-        if plan_start_dt > since:
-            since = plan_start_dt
+    if plan_started_at and plan_started_at > since:
+        since = plan_started_at
     with SessionLocal() as db:
         return (
             db.query(func.count(Analysis.id))

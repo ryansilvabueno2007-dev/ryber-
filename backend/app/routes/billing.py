@@ -1,5 +1,5 @@
 import calendar
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
@@ -169,7 +169,7 @@ async def asaas_webhook(request: Request) -> dict:
                 if confirm_plan and db_user.pending_plan:
                     db_user.plan = db_user.pending_plan
                     db_user.pending_plan = None
-                    db_user.plan_started_at = date.today()
+                    db_user.plan_started_at = datetime.now(timezone.utc)
                     if db_user.pending_cancel_subscription_id:
                         to_cancel = db_user.pending_cancel_subscription_id
                         db_user.pending_cancel_subscription_id = None

@@ -9,7 +9,7 @@ Uso:
 """
 
 import sys
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -34,10 +34,11 @@ def main() -> None:
             print(f"Conta {email} não tem plano confirmado no momento.")
             return
 
+        now = datetime.now(timezone.utc)
         print(f"Plano atual: {user.plan} | plan_started_at antes: {user.plan_started_at}")
-        user.plan_started_at = date.today()
+        user.plan_started_at = now
         db.commit()
-        print(f"plan_started_at atualizado pra hoje ({date.today().isoformat()}).")
+        print(f"plan_started_at atualizado pra agora ({now.isoformat()}).")
 
 
 if __name__ == "__main__":
