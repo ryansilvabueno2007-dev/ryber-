@@ -20,13 +20,13 @@ export function Header({ right }: { right?: ReactNode }) {
             Ryber
           </span>
         </Link>
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
           {right}
           {user ? (
             <>
               <Link
                 to="/"
-                className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
+                className="hidden sm:inline-block text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
               >
                 Página inicial
               </Link>
@@ -35,12 +35,6 @@ export function Header({ right }: { right?: ReactNode }) {
                 className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
               >
                 Dashboard
-              </Link>
-              <Link
-                to="/history"
-                className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
-              >
-                Histórico
               </Link>
               <Link
                 to="/planos"
