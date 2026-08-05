@@ -69,7 +69,11 @@ async def create_checkout_session(
         value=value,
         external_reference=user.id,
         next_due_date=date.today().isoformat(),
-        success_url=f"{settings.frontend_url}/billing/success",
+        # Desativado por enquanto: a Asaas exige que essa URL use um domínio já
+        # verificado em "Minha Conta > Informações" no painel deles — sem isso, ela
+        # rejeita a assinatura inteira com 400. Reativar só depois de cadastrar o
+        # domínio lá (basta passar success_url de novo).
+        success_url=None,
     )
     subscription_id = subscription["id"]
 
