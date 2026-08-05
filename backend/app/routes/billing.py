@@ -69,11 +69,9 @@ async def create_checkout_session(
         value=value,
         external_reference=user.id,
         next_due_date=date.today().isoformat(),
-        # Desativado por enquanto: a Asaas exige que essa URL use um domínio já
-        # verificado em "Minha Conta > Informações" no painel deles — sem isso, ela
-        # rejeita a assinatura inteira com 400. Reativar só depois de cadastrar o
-        # domínio lá (basta passar success_url de novo).
-        success_url=None,
+        # Precisa bater exatamente com o domínio cadastrado em Minha Conta >
+        # Informações no painel da Asaas (hoje: https://www.ryber.com.br/).
+        success_url=f"{settings.frontend_url}/billing/success",
     )
     subscription_id = subscription["id"]
 
