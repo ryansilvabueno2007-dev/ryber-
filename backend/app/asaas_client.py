@@ -20,6 +20,15 @@ def _headers() -> dict:
     return {"access_token": settings.asaas_api_key, "Content-Type": "application/json"}
 
 
+def _raise_with_body(resp: httpx.Response) -> None:
+    """resp.raise_for_status() sozinho só mostra o status code — o motivo real do erro
+    (obrigatório, formato inválido, etc) vem no corpo da resposta da Asaas. Sem logar
+    isso, um 400 vira um traceback genérico impossível de diagnosticar."""
+    if resp.status_code >= 400:
+        print(f"[asaas] {resp.status_code} em {resp.request.url}: {resp.text}", flush=True)
+    resp.raise_for_status()
+
+
 def create_customer(name: str, cpf_cnpj: str, email: str, external_reference: str) -> dict:
     resp = httpx.post(
         f"{_base_url()}/customers",
@@ -32,30 +41,29 @@ def create_customer(name: str, cpf_cnpj: str, email: str, external_reference: st
         },
         timeout=30,
     )
-    resp.raise_for_status()
+    _raise_with_body(resp)
     return resp.json()
 
 
 def create_subscription(
-    customer_id: str, value: float, external_reference: str, next_due_date: str, success_url: str
+    customer_id: str, value: float, external_reference: str, next_due_date: str, success_url: str | None = None
 ) -> dict:
-    resp = httpx.post(
-        f"{_base_url()}/subscriptions",
-        headers=_headers(),
-        json={
-            "customer": customer_id,
-            "billingType": "UNDEFINED",  # deixa o cliente escolher PIX/boleto/cartão na fatura
-            "value": value,
-            "nextDueDate": next_due_date,
-            "cycle": "MONTHLY",
-            "externalReference": external_reference,
-            # Sem isso, depois de pagar a pessoa fica parada na aba da fatura da Asaas,
-            # sem voltar pro site sozinha.
-            "callback": {"successUrl": success_url, "autoRedirect": True},
-        },
-        timeout=30,
-    )
-    resp.raise_for_status()
+    payload = {
+        "customer": customer_id,
+        "billingType": "UNDEFINED",  # deixa o cliente escolher PIX/boleto/cartão na fatura
+        "value": value,
+        "nextDueDate": next_due_date,
+        "cycle": "MONTHLY",
+        "externalReference": external_reference,
+    }
+    # Sem isso, depois de pagar a pessoa fica parada na aba da fatura da Asaas, sem
+    # voltar pro site sozinha — mas é só conveniência de UX, nunca pode travar a
+    # assinatura em si (por isso só entra se for uma URL http(s) válida de verdade).
+    if success_url and success_url.startswith(("http://", "https://")):
+        payload["callback"] = {"successUrl": success_url, "autoRedirect": True}
+
+    resp = httpx.post(f"{_base_url()}/subscriptions", headers=_headers(), json=payload, timeout=30)
+    _raise_with_body(resp)
     return resp.json()
 
 
@@ -65,7 +73,7 @@ def get_subscription_payments(subscription_id: str) -> list[dict]:
         headers=_headers(),
         timeout=30,
     )
-    resp.raise_for_status()
+    _raise_with_body(resp)
     return resp.json().get("data", [])
 
 
@@ -76,4 +84,4 @@ def cancel_subscription(subscription_id: str) -> None:
     resp = httpx.delete(f"{_base_url()}/subscriptions/{subscription_id}", headers=_headers(), timeout=30)
     if resp.status_code == 404:
         return
-    resp.raise_for_status()
+    _raise_with_body(resp)
