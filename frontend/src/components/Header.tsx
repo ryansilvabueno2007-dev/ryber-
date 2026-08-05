@@ -25,6 +25,12 @@ export function Header({ right }: { right?: ReactNode }) {
           {user ? (
             <>
               <Link
+                to="/app"
+                className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
+              >
+                Dashboard
+              </Link>
+              <Link
                 to="/history"
                 className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
               >
