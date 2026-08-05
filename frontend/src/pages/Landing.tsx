@@ -12,6 +12,7 @@ import { PerformanceScore } from '../components/PerformanceScore'
 import { ObjectiveFitCard } from '../components/ObjectiveFitCard'
 import { BriefingCompat } from '../components/BriefingCompat'
 import { PlanCard } from '../components/PlanCard'
+import { useAuth } from '../context/AuthContext'
 import { PLANS, PLAN_FEATURES } from '../data/plans'
 import type { AnalysisResult } from '../types'
 
@@ -292,6 +293,8 @@ function AnnouncementBar({ onClose }: { onClose: () => void }) {
 }
 
 function LandingNav() {
+  const { user, logout } = useAuth()
+
   return (
     <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-canvas/80 backdrop-blur-xl">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
@@ -305,15 +308,31 @@ function LandingNav() {
           <a href="#precos" className="hover:text-ink transition-colors">Preços</a>
         </nav>
         <div className="flex items-center gap-3 sm:gap-4">
-          <Link to="/login" className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap">
-            Entrar
-          </Link>
-          <Link
-            to="/signup"
-            className="rounded-full bg-ink text-canvas px-4 py-2 text-sm font-medium whitespace-nowrap hover:bg-white transition-colors"
-          >
-            Criar conta
-          </Link>
+          {user ? (
+            <>
+              <Link to="/app" className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap">
+                Dashboard
+              </Link>
+              <button
+                onClick={() => logout()}
+                className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap"
+              >
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="text-sm font-medium text-ink-soft hover:text-ink transition-colors whitespace-nowrap">
+                Entrar
+              </Link>
+              <Link
+                to="/signup"
+                className="rounded-full bg-ink text-canvas px-4 py-2 text-sm font-medium whitespace-nowrap hover:bg-white transition-colors"
+              >
+                Criar conta
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
