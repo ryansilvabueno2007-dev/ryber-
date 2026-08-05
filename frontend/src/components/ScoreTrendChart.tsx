@@ -8,19 +8,8 @@ const PAD = 12
 export function ScoreTrendChart({ points }: { points: ScoreTrendPoint[] }) {
   if (points.length < 2) {
     return (
-      <div className="h-40 sm:h-48 flex flex-col items-center justify-center gap-3 text-center px-6">
-        <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8 text-ink-faint opacity-60">
-          <path
-            d="M4 19V5m0 14h16M8 15l3-3 3 2 4-5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <p className="text-sm text-ink-soft max-w-xs leading-relaxed">
-          Faça mais análises para visualizar sua evolução.
-        </p>
+      <div className="h-40 flex items-center justify-center text-xs text-ink-faint text-center px-6">
+        Faça mais análises para ver sua evolução ao longo do tempo.
       </div>
     )
   }
