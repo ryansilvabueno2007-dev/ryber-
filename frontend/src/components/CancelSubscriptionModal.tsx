@@ -43,13 +43,13 @@ export function CancelSubscriptionModal({
       <div className="relative w-full max-w-md rounded-2xl border border-line bg-panel p-6 shadow-glow">
         <div className="text-sm font-semibold text-ink tracking-tight mb-1.5">Cancelar assinatura</div>
         <p className="text-xs text-ink-soft mb-5">
-          Antes de cancelar, responde só essas duas perguntas rápidas — ajuda a gente a melhorar a
-          plataforma.
+          As duas perguntas abaixo são <strong className="text-ink">obrigatórias</strong> — o botão de
+          cancelar só libera depois de respondidas. É rapidinho, e ajuda a gente a melhorar a plataforma.
         </p>
 
         <div className="mb-4">
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-2">
-            Como foi sua experiência com a Ryber?
+            Como foi sua experiência com a Ryber? <span className="text-danger normal-case">*obrigatório</span>
           </div>
           <div className="flex gap-2">
             {(['boa', 'ruim'] as const).map((option) => (
@@ -71,7 +71,7 @@ export function CancelSubscriptionModal({
 
         <div className="mb-5">
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-2">
-            Qual o motivo do cancelamento?
+            Qual o motivo do cancelamento? <span className="text-danger normal-case">*obrigatório</span>
           </div>
           <textarea
             value={reason}
@@ -86,6 +86,12 @@ export function CancelSubscriptionModal({
           Ao confirmar, sua assinatura para de renovar, mas você continua com acesso ao plano até{' '}
           <span className="text-ink font-medium">{formatDate(renewsAt)}</span>.
         </p>
+
+        {!canConfirm && (
+          <p className="text-xs text-ink-faint mb-3">
+            Responda a pergunta acima e conte o motivo para liberar o botão de cancelar.
+          </p>
+        )}
 
         {error && <p className="text-danger text-xs mb-3">{error}</p>}
 
