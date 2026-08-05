@@ -64,14 +64,6 @@ async def create_checkout_session(
         previous_subscription_id = db_user.asaas_subscription_id
         db.commit()
 
-    if previous_subscription_id:
-        # Troca de plano (ou reassinatura) — cancela a assinatura anterior antes de criar
-        # a nova, senão as duas ficam cobrando em paralelo.
-        try:
-            asaas_client.cancel_subscription(previous_subscription_id)
-        except Exception:  # noqa: BLE001
-            pass
-
     subscription = asaas_client.create_subscription(
         customer_id=customer_id,
         value=value,
@@ -83,9 +75,16 @@ async def create_checkout_session(
     with SessionLocal() as db:
         db_user = db.get(User, user.id)
         db_user.asaas_subscription_id = subscription_id
-        db_user.plan = plan
+        # "plan" só vira esse valor quando o webhook confirmar o primeiro pagamento —
+        # até lá fica só pendente, pra não mostrar um plano como "atual" sem ter pago nada.
+        db_user.pending_plan = plan
         db_user.plan_renews_at = _add_month(date.today())
         db_user.plan_canceled = False  # nova assinatura (ou reassinatura) — cancelamento anterior não vale mais
+        if previous_subscription_id and previous_subscription_id != subscription_id:
+            # Só cancela a assinatura antiga quando a nova for confirmada por pagamento
+            # (no webhook) — se cancelasse aqui e a pessoa abandonasse o checkout sem
+            # pagar, ficaria sem nenhum plano ativo.
+            db_user.pending_cancel_subscription_id = previous_subscription_id
         db.commit()
 
     payments = asaas_client.get_subscription_payments(subscription_id)
@@ -152,16 +151,32 @@ async def asaas_webhook(request: Request) -> dict:
     body = await request.json()
     event = body.get("event", "")
 
-    def _set_subscribed(subscription_id: str | None, value: bool, renews_at: date | None = None) -> None:
+    def _set_subscribed(
+        subscription_id: str | None, value: bool, renews_at: date | None = None, confirm_plan: bool = False
+    ) -> None:
         if not subscription_id:
             return
+        to_cancel = None
         with SessionLocal() as db:
             db_user = db.query(User).filter(User.asaas_subscription_id == subscription_id).first()
             if db_user is not None:
                 db_user.is_subscribed = value
                 if renews_at is not None:
                     db_user.plan_renews_at = renews_at
+                if confirm_plan and db_user.pending_plan:
+                    db_user.plan = db_user.pending_plan
+                    db_user.pending_plan = None
+                    if db_user.pending_cancel_subscription_id:
+                        to_cancel = db_user.pending_cancel_subscription_id
+                        db_user.pending_cancel_subscription_id = None
                 db.commit()
+
+        if to_cancel:
+            # Só agora que o novo plano foi de fato pago é seguro cancelar o antigo.
+            try:
+                asaas_client.cancel_subscription(to_cancel)
+            except Exception:  # noqa: BLE001
+                pass
 
     # Dois sinais independentes pro mesmo estado — evento de cobrança (sempre chega,
     # já que gera a cada ciclo) e evento de assinatura (mais direto quando existe,
@@ -177,7 +192,7 @@ async def asaas_webhook(request: Request) -> dict:
                 renews_at = _add_month(date.fromisoformat(due_date))
             except ValueError:
                 renews_at = None
-        _set_subscribed(payment.get("subscription"), True, renews_at)
+        _set_subscribed(payment.get("subscription"), True, renews_at, confirm_plan=True)
 
     elif event in ("PAYMENT_OVERDUE", "PAYMENT_REFUNDED", "PAYMENT_DELETED"):
         payment = body.get("payment") or {}

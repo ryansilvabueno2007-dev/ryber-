@@ -28,6 +28,14 @@ class User(Base):
     asaas_subscription_id = Column(String, nullable=True)
     is_subscribed = Column(Boolean, nullable=False, default=False)
     plan = Column(String, nullable=True)  # "start" | "gold" | "platinum" | "titanium" | "infinity"
+    # Plano escolhido no checkout, mas ainda não confirmado por pagamento — só vira
+    # "plan" de fato quando o webhook confirma a primeira cobrança (PAYMENT_CONFIRMED/
+    # RECEIVED). Evita mostrar um plano como "atual" antes de qualquer pagamento.
+    pending_plan = Column(String, nullable=True)
+    # Assinatura antiga a cancelar quando a nova (pending_plan) for confirmada por
+    # pagamento — evita cancelar o plano atual antes de garantir que o novo foi pago
+    # (senão, se a pessoa abandonar o checkout, fica sem nenhum plano ativo).
+    pending_cancel_subscription_id = Column(String, nullable=True)
     # Enquanto não cancelado, é a próxima data de cobrança. Depois de cancelar
     # (plan_canceled=True), vira a data em que o acesso realmente termina.
     plan_renews_at = Column(Date, nullable=True)
