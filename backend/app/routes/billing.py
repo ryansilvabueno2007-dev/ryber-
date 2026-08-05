@@ -83,6 +83,10 @@ async def asaas_webhook(request: Request) -> dict:
     body = await request.json()
     event = body.get("event", "")
 
+    # A tela de webhook da Asaas só oferece eventos de "Cobranças" (não tem uma
+    # categoria de "Assinaturas" separada) — então tanto ligar quanto desligar o
+    # acesso do assinante depende de eventos de pagamento, não de eventos de
+    # assinatura como SUBSCRIPTION_DELETED.
     if event in ("PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"):
         payment = body.get("payment") or {}
         subscription_id = payment.get("subscription")
@@ -93,9 +97,9 @@ async def asaas_webhook(request: Request) -> dict:
                     db_user.is_subscribed = True
                     db.commit()
 
-    elif event in ("SUBSCRIPTION_DELETED", "SUBSCRIPTION_INACTIVATED"):
-        subscription = body.get("subscription") or {}
-        subscription_id = subscription.get("id")
+    elif event in ("PAYMENT_OVERDUE", "PAYMENT_REFUNDED", "PAYMENT_DELETED"):
+        payment = body.get("payment") or {}
+        subscription_id = payment.get("subscription")
         if subscription_id:
             with SessionLocal() as db:
                 db_user = db.query(User).filter(User.asaas_subscription_id == subscription_id).first()
