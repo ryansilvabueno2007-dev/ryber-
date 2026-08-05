@@ -384,11 +384,7 @@ function PlanCard({ plan, highlight }: { plan: Plan; highlight?: boolean }) {
         <button
           onClick={handleClick}
           disabled={loading}
-          className={`block text-center rounded-full px-5 py-3 font-medium uppercase tracking-wide text-xs transition-all disabled:opacity-60 ${
-            highlight
-              ? 'bg-accent text-white shadow-glow hover:bg-accent-strong'
-              : 'bg-panel-raised border border-line text-ink hover:border-white/[0.2]'
-          }`}
+          className="block text-center rounded-full px-5 py-3 font-medium uppercase tracking-wide text-xs transition-all disabled:opacity-60 bg-accent text-white shadow-glow hover:bg-accent-strong"
         >
           {loading ? 'Abrindo...' : 'Assinar'}
         </button>
