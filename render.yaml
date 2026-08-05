@@ -38,7 +38,7 @@ services:
       - key: ASAAS_API_KEY
         sync: false
       - key: ASAAS_ENV
-        value: sandbox
+        sync: false
       - key: ASAAS_WEBHOOK_TOKEN
         sync: false
       - key: FRONTEND_URL
