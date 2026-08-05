@@ -37,6 +37,18 @@ def _is_public_host(hostname: str) -> bool:
     return True
 
 
+# A Ryber só aceita link direto dessas plataformas — qualquer outro domínio precisa vir
+# por upload de arquivo. Checagem por sufixo (ex: "sub.instagram.com" também bate). Só se
+# aplica ao link que o usuário colou, não aos redirects seguidos depois (ex: a imagem do
+# Instagram redireciona pra um host de CDN tipo scontent.cdninstagram.com).
+_ALLOWED_LINK_DOMAINS = ("instagram.com", "facebook.com", "fb.watch", "tiktok.com")
+
+
+def _is_allowed_domain(hostname: str) -> bool:
+    host = hostname.lower()
+    return any(host == d or host.endswith("." + d) for d in _ALLOWED_LINK_DOMAINS)
+
+
 def _validate_url(url: str) -> None:
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https") or not parsed.hostname:
@@ -47,6 +59,12 @@ def _validate_url(url: str) -> None:
 
 def download_from_link(url: str, dest_dir: Path, analysis_id: str) -> Path:
     _validate_url(url)
+    parsed = urlparse(url)
+    if not parsed.hostname or not _is_allowed_domain(parsed.hostname):
+        raise RuntimeError(
+            "A Ryber aceita apenas links do Instagram, Facebook ou TikTok. Pra outros links, "
+            "baixe o arquivo e envie por upload."
+        )
     try:
         return _download_video(url, dest_dir, analysis_id)
     except yt_dlp.utils.DownloadError:
