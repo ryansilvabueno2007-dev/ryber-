@@ -165,14 +165,21 @@ def list_analyses(user_id: str, limit: int = 50, offset: int = 0) -> list[dict]:
         return summaries
 
 
-def count_analyses_this_month(user_id: str) -> int:
-    """Quantas análises esse usuário já criou desde o início do mês corrente (UTC)."""
+def count_analyses_this_month(user_id: str, plan_started_at=None) -> int:
+    """Quantas análises esse usuário já criou desde o início do mês corrente (UTC) —
+    ou desde que o plano atual começou, se isso for mais recente que o início do mês.
+    Sem isso, uma análise feita no teste grátis (antes de assinar) contaria contra a
+    cota do plano pago se as duas acontecerem no mesmo mês calendário."""
     now = datetime.now(timezone.utc)
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    since = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    if plan_started_at:
+        plan_start_dt = datetime.combine(plan_started_at, datetime.min.time(), tzinfo=timezone.utc)
+        if plan_start_dt > since:
+            since = plan_start_dt
     with SessionLocal() as db:
         return (
             db.query(func.count(Analysis.id))
-            .filter(Analysis.user_id == user_id, Analysis.created_at >= month_start)
+            .filter(Analysis.user_id == user_id, Analysis.created_at >= since)
             .scalar()
             or 0
         )

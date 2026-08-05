@@ -45,7 +45,7 @@ def _check_quota(user: User) -> None:
     quota = PLAN_QUOTAS.get(user.plan)
     if quota is None:
         return
-    used = storage.count_analyses_this_month(user.id)
+    used = storage.count_analyses_this_month(user.id, plan_started_at=user.plan_started_at)
     if used >= quota:
         raise HTTPException(
             429,

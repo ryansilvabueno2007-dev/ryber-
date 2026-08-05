@@ -76,7 +76,10 @@ async def get_dashboard_stats(user: User = Depends(require_user)) -> DashboardSt
         quota, used = None, analytics["total_analyses"]
     elif user.plan and plan_active:
         # Assinante com plano ativo: cota mensal, reseta todo mês.
-        quota, used = PLAN_QUOTAS.get(user.plan), storage.count_analyses_this_month(user.id)
+        quota, used = (
+            PLAN_QUOTAS.get(user.plan),
+            storage.count_analyses_this_month(user.id, plan_started_at=user.plan_started_at),
+        )
     else:
         # Sem plano ativo (nunca assinou, ou assinatura cancelada e já expirada): a
         # única "cota" é a análise grátis vitalícia (1 análise, nunca reseta) — contar

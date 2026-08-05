@@ -28,6 +28,9 @@ class User(Base):
     asaas_subscription_id = Column(String, nullable=True)
     is_subscribed = Column(Boolean, nullable=False, default=False)
     plan = Column(String, nullable=True)  # "start" | "gold" | "platinum" | "titanium" | "infinity"
+    # Data em que o plano atual foi de fato confirmado por pagamento — usada pra cota
+    # mensal nunca contar análises feitas antes de assinar (ex: o teste grátis).
+    plan_started_at = Column(Date, nullable=True)
     # Plano escolhido no checkout, mas ainda não confirmado por pagamento — só vira
     # "plan" de fato quando o webhook confirma a primeira cobrança (PAYMENT_CONFIRMED/
     # RECEIVED). Evita mostrar um plano como "atual" antes de qualquer pagamento.
