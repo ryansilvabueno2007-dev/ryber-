@@ -1,25 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AuthValueProp } from '../components/AuthValueProp'
+import { GoogleSignInButton } from '../components/GoogleSignInButton'
 import { useAuth } from '../context/AuthContext'
-
-const BENEFITS = [
-  'Leitura completa do criativo',
-  'Benchmark do nicho',
-  'Público identificado',
-  'Emoções transmitidas',
-  'Posicionamento',
-  'Riscos encontrados',
-  'Plano de edição cena a cena',
-  'Performance prevista',
-]
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-accent shrink-0">
-      <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
 
 export function Signup() {
   const { signup } = useAuth()
@@ -51,35 +34,8 @@ export function Signup() {
 
   return (
     <div className="min-h-full grid grid-cols-1 lg:grid-cols-2">
-      {/* Coluna esquerda — proposta de valor */}
-      <div className="relative hidden lg:flex flex-col justify-center px-16 py-16 overflow-hidden border-r border-white/[0.06]">
-        <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" />
-        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-accent-soft blur-[100px] pointer-events-none" />
-        <div className="relative max-w-md">
-          <Link to="/" className="flex items-center gap-2 mb-12 w-fit">
-            <img src="/logo-mark.png" alt="" className="h-8 w-8" />
-            <span className="font-semibold tracking-tight text-lg text-ink">Ryber</span>
-          </Link>
-          <h1 className="text-3xl font-semibold tracking-tight mb-5 text-ink leading-tight">
-            Descubra como a IA das plataformas de anúncio interpreta seu criativo — e como seu público
-            realmente reage a ele.
-          </h1>
-          <p className="text-ink-soft text-base leading-relaxed mb-10">
-            Relatórios completos de performance, público, posicionamento e risco, prontos antes de você
-            investir um real em mídia.
-          </p>
-          <ul className="grid grid-cols-2 gap-x-6 gap-y-3.5">
-            {BENEFITS.map((b) => (
-              <li key={b} className="flex items-center gap-2 text-sm text-ink-soft">
-                <CheckIcon />
-                {b}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      <AuthValueProp />
 
-      {/* Coluna direita — formulário */}
       <div className="flex-1 flex items-center justify-center px-6 py-16">
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5">
           <div className="lg:hidden flex items-center gap-2 mb-4">
@@ -137,6 +93,8 @@ export function Signup() {
           >
             {loading ? 'Criando...' : 'Criar conta'}
           </button>
+
+          <GoogleSignInButton mode="signup" onError={setError} />
 
           <div className="text-center space-y-1">
             <p className="text-xs text-ink-soft">

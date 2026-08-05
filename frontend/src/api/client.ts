@@ -41,6 +41,16 @@ export async function login(email: string, password: string): Promise<CurrentUse
   return asJson(res)
 }
 
+export async function loginWithGoogle(idToken: string, createIfMissing: boolean): Promise<CurrentUser> {
+  const res = await fetch(`${BASE_URL}/api/auth/google`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id_token: idToken, create_if_missing: createIfMissing }),
+  })
+  return asJson(res)
+}
+
 export async function logout(): Promise<void> {
   await fetch(`${BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' })
 }

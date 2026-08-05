@@ -1,4 +1,8 @@
+import secrets
+
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session as DBSession
 
@@ -20,6 +24,13 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+class GoogleAuthRequest(BaseModel):
+    id_token: str
+    # False no login: não cria conta nova se o e-mail do Google não tiver cadastro,
+    # só entra em quem já existe. True no cadastro: cria se não existir.
+    create_if_missing: bool = True
 
 
 class UserResponse(BaseModel):
@@ -86,6 +97,45 @@ async def login(payload: LoginRequest, response: Response, db: DBSession = Depen
     user = db.query(User).filter(User.email == payload.email.lower()).first()
     if user is None or not auth.verify_password(payload.password, user.password_hash):
         raise HTTPException(401, "E-mail ou senha inválidos.")
+
+    token = auth.create_session(db, user)
+    _set_session_cookie(response, token)
+    return _to_user_response(user)
+
+
+@router.post("/google", response_model=UserResponse)
+@limiter.limit("10/minute")
+async def google_auth(
+    request: Request, payload: GoogleAuthRequest, response: Response, db: DBSession = Depends(get_db)
+) -> UserResponse:
+    if not settings.google_client_id:
+        raise HTTPException(503, "Login com Google ainda não configurado.")
+
+    try:
+        idinfo = google_id_token.verify_oauth2_token(
+            payload.id_token, google_requests.Request(), settings.google_client_id
+        )
+    except ValueError:
+        raise HTTPException(401, "Token do Google inválido.") from None
+
+    email = (idinfo.get("email") or "").lower()
+    if not email or not idinfo.get("email_verified"):
+        raise HTTPException(401, "Não foi possível confirmar seu e-mail do Google.")
+
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        if not payload.create_if_missing:
+            raise HTTPException(404, "Nenhuma conta encontrada com esse e-mail do Google. Crie uma conta primeiro.")
+        # Conta criada via Google não usa senha própria — gera um hash aleatório
+        # inutilizável só pra satisfazer a coluna NOT NULL, nunca é usado pra logar.
+        user = User(
+            email=email,
+            name=idinfo.get("name") or None,
+            password_hash=auth.hash_password(secrets.token_hex(32)),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)

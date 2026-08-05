@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Header } from '../components/Header'
+import { AuthValueProp } from '../components/AuthValueProp'
+import { GoogleSignInButton } from '../components/GoogleSignInButton'
 import { useAuth } from '../context/AuthContext'
 
 export function Login() {
@@ -26,14 +27,20 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-full flex flex-col">
-      <Header />
+    <div className="min-h-full grid grid-cols-1 lg:grid-cols-2">
+      <AuthValueProp />
+
       <div className="flex-1 flex items-center justify-center px-6 py-16">
-        <form
-          onSubmit={handleSubmit}
-          className="w-full max-w-sm rounded-3xl border border-line bg-panel p-8 shadow-elevated space-y-5"
-        >
-          <div className="text-2xl font-medium text-center">Entrar</div>
+        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5">
+          <div className="lg:hidden flex items-center gap-2 mb-4">
+            <img src="/logo-mark.png" alt="" className="h-7 w-7" />
+            <span className="font-semibold tracking-tight text-ink">Ryber</span>
+          </div>
+          <div>
+            <div className="text-2xl font-semibold tracking-tight text-ink">Entrar</div>
+            <p className="text-sm text-ink-soft mt-1">Acesse sua conta pra continuar analisando.</p>
+          </div>
+
           <div className="space-y-3">
             <input
               type="email"
@@ -41,7 +48,7 @@ export function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="E-mail"
-              className="w-full rounded-full border border-line bg-panel px-5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-shadow"
+              className="w-full rounded-full border border-line bg-panel px-5 py-3 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-shadow"
             />
             <input
               type="password"
@@ -49,17 +56,22 @@ export function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Senha"
-              className="w-full rounded-full border border-line bg-panel px-5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-shadow"
+              className="w-full rounded-full border border-line bg-panel px-5 py-3 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-shadow"
             />
           </div>
+
           {error && <p className="text-danger text-sm text-center">{error}</p>}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-accent text-white px-6 py-3 font-medium shadow-card disabled:opacity-60"
+            className="w-full rounded-full bg-accent text-white px-6 py-3.5 font-medium shadow-glow hover:bg-accent-strong transition-all disabled:opacity-60"
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
+
+          <GoogleSignInButton mode="login" onError={setError} />
+
           <p className="text-center text-sm text-ink-soft">
             Não tem conta?{' '}
             <Link to="/signup" className="text-accent hover:underline">

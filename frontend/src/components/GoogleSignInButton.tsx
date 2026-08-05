@@ -1,0 +1,86 @@
+import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
+
+interface GoogleCredentialResponse {
+  credential: string
+}
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string
+            callback: (response: GoogleCredentialResponse) => void
+          }) => void
+          renderButton: (parent: HTMLElement, options: Record<string, unknown>) => void
+        }
+      }
+    }
+  }
+}
+
+// Só renderiza se VITE_GOOGLE_CLIENT_ID estiver configurado — sem isso, some do
+// formulário em vez de mostrar um botão quebrado.
+interface Props {
+  mode: 'signup' | 'login'
+  onError: (message: string) => void
+}
+
+export function GoogleSignInButton({ mode, onError }: Props) {
+  const { loginWithGoogle } = useAuth()
+  const navigate = useNavigate()
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!CLIENT_ID) return
+
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.onload = () => {
+      if (!window.google || !containerRef.current) return
+      window.google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: async (response) => {
+          try {
+            await loginWithGoogle(response.credential, mode === 'signup')
+            navigate(mode === 'signup' ? '/welcome' : '/app')
+          } catch (err) {
+            onError(err instanceof Error ? err.message : 'Não foi possível entrar com o Google.')
+          }
+        },
+      })
+      window.google.accounts.id.renderButton(containerRef.current, {
+        theme: 'filled_black',
+        size: 'large',
+        shape: 'pill',
+        width: 320,
+        text: 'continue_with',
+        locale: 'pt-BR',
+      })
+    }
+    document.body.appendChild(script)
+    return () => {
+      document.body.removeChild(script)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  if (!CLIENT_ID) return null
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-line" />
+        <span className="text-[11px] text-ink-faint uppercase tracking-wide">ou</span>
+        <div className="h-px flex-1 bg-line" />
+      </div>
+      <div ref={containerRef} className="flex justify-center" />
+    </div>
+  )
+}

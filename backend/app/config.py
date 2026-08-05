@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     # inicialização — permite dar acesso de admin sem precisar de shell no servidor.
     admin_emails: str = ""
 
+    # Login com Google — Client ID do OAuth (público, vai pro frontend também).
+    # Criado em console.cloud.google.com > APIs e Serviços > Credenciais > Client ID OAuth.
+    google_client_id: str = ""
+
     # Asaas (cobrança/assinatura) — ambiente controla a base URL da API (sandbox/produção).
     asaas_api_key: str = ""
     asaas_env: str = "sandbox"  # "sandbox" ou "production"
