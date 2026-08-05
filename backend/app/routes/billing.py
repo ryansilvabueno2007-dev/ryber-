@@ -83,28 +83,28 @@ async def asaas_webhook(request: Request) -> dict:
     body = await request.json()
     event = body.get("event", "")
 
-    # A tela de webhook da Asaas só oferece eventos de "Cobranças" (não tem uma
-    # categoria de "Assinaturas" separada) — então tanto ligar quanto desligar o
-    # acesso do assinante depende de eventos de pagamento, não de eventos de
-    # assinatura como SUBSCRIPTION_DELETED.
+    def _set_subscribed(subscription_id: str | None, value: bool) -> None:
+        if not subscription_id:
+            return
+        with SessionLocal() as db:
+            db_user = db.query(User).filter(User.asaas_subscription_id == subscription_id).first()
+            if db_user is not None:
+                db_user.is_subscribed = value
+                db.commit()
+
+    # Dois sinais independentes pro mesmo estado — evento de cobrança (sempre chega,
+    # já que gera a cada ciclo) e evento de assinatura (mais direto quando existe,
+    # ex: cancelamento manual antes do próximo vencimento).
     if event in ("PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"):
         payment = body.get("payment") or {}
-        subscription_id = payment.get("subscription")
-        if subscription_id:
-            with SessionLocal() as db:
-                db_user = db.query(User).filter(User.asaas_subscription_id == subscription_id).first()
-                if db_user is not None:
-                    db_user.is_subscribed = True
-                    db.commit()
+        _set_subscribed(payment.get("subscription"), True)
 
     elif event in ("PAYMENT_OVERDUE", "PAYMENT_REFUNDED", "PAYMENT_DELETED"):
         payment = body.get("payment") or {}
-        subscription_id = payment.get("subscription")
-        if subscription_id:
-            with SessionLocal() as db:
-                db_user = db.query(User).filter(User.asaas_subscription_id == subscription_id).first()
-                if db_user is not None:
-                    db_user.is_subscribed = False
-                    db.commit()
+        _set_subscribed(payment.get("subscription"), False)
+
+    elif event == "SUBSCRIPTION_DELETED" or event == "SUBSCRIPTION_INACTIVATED":
+        subscription = body.get("subscription") or {}
+        _set_subscribed(subscription.get("id"), False)
 
     return {"status": "ok"}
