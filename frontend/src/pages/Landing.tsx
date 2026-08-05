@@ -365,7 +365,10 @@ function PlanCard({ plan, highlight }: { plan: Plan; highlight?: boolean }) {
       )}
       <div className="relative px-6 py-6 bg-panel-raised border-b border-line overflow-hidden">
         <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" />
-        <div className="relative text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-1.5">{plan.name}</div>
+        <div className="relative text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-1.5">
+          {plan.name}
+          {highlight && <span className="text-accent-strong ml-1.5">(Mais popular)</span>}
+        </div>
         <div className="relative flex items-baseline gap-1">
           <span className="text-3xl font-semibold tracking-tight text-ink">R$ {formatBRL(plan.price)}</span>
           <span className="text-sm text-ink-soft">/mês</span>
