@@ -96,6 +96,8 @@ class AnalysisSummary(BaseModel):
     stage: str
     product: Optional[str] = None
     created_at: Optional[str] = None
+    performance_score: Optional[float] = None
+    recommended_objective: Optional[str] = None
 
 
 class ComparisonResponse(BaseModel):
@@ -139,3 +141,24 @@ class OptimizationStatus(BaseModel):
     objective: str
     error: Optional[str] = None
     scenes: list[SceneDirection] = []
+
+
+class ScoreTrendPoint(BaseModel):
+    date: str
+    score: float
+
+
+class DashboardStats(BaseModel):
+    name: Optional[str] = None
+    plan: Optional[str] = None
+    is_subscribed: bool = False
+    analyses_used: int = 0
+    analyses_quota: Optional[int] = None
+    total_analyses: int = 0
+    average_score: Optional[float] = None
+    best_score: Optional[float] = None
+    most_used_objective: Optional[str] = None
+    weakest_objective: Optional[str] = None
+    last_analysis_at: Optional[str] = None
+    score_trend: list[ScoreTrendPoint] = []
+    insights: list[str] = []

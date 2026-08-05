@@ -145,8 +145,12 @@ def list_analyses(user_id: str, limit: int = 50, offset: int = 0) -> list[dict]:
         summaries = []
         for row in rows:
             product = None
+            performance_score = None
+            recommended_objective = None
             if row.result_json:
                 product = (row.result_json.get("product") or {}).get("name")
+                performance_score = row.result_json.get("performance_score")
+                recommended_objective = row.result_json.get("recommended_objective") or None
             summaries.append(
                 {
                     "id": row.id,
@@ -154,6 +158,8 @@ def list_analyses(user_id: str, limit: int = 50, offset: int = 0) -> list[dict]:
                     "stage": row.stage,
                     "product": product,
                     "created_at": row.created_at.isoformat() if row.created_at else None,
+                    "performance_score": performance_score,
+                    "recommended_objective": recommended_objective,
                 }
             )
         return summaries
@@ -177,6 +183,56 @@ def count_all_analyses(user_id: str) -> int:
     (1 análise antes de assinar), que não reseta por mês."""
     with SessionLocal() as db:
         return db.query(func.count(Analysis.id)).filter(Analysis.user_id == user_id).scalar() or 0
+
+
+def get_dashboard_analytics(user_id: str) -> dict:
+    """Dados crus (sem interpretação) pro dashboard: notas ao longo do tempo e contagem
+    de encaixe por objetivo — usado tanto pros cards de estatística quanto pros insights
+    automáticos. Uma query só por tabela, tudo computado em Python a partir do
+    result_json já salvo (não refaz nenhuma análise nem chama a IA de novo)."""
+    with SessionLocal() as db:
+        rows = (
+            db.query(Analysis)
+            .filter(Analysis.user_id == user_id, Analysis.result_json.isnot(None))
+            .order_by(Analysis.created_at.asc())
+            .all()
+        )
+
+        trend: list[dict] = []
+        objective_fraco_counts: dict[str, int] = {}
+        objective_total_counts: dict[str, int] = {}
+        last_analysis_at = None
+
+        for row in rows:
+            result = row.result_json or {}
+            score = result.get("performance_score")
+            if isinstance(score, (int, float)) and row.created_at:
+                trend.append({"date": row.created_at.isoformat(), "score": score})
+            for fit in result.get("objective_fit") or []:
+                obj = fit.get("objective")
+                if not obj:
+                    continue
+                objective_total_counts[obj] = objective_total_counts.get(obj, 0) + 1
+                if fit.get("fit") == "fraco":
+                    objective_fraco_counts[obj] = objective_fraco_counts.get(obj, 0) + 1
+            if row.created_at and (last_analysis_at is None or row.created_at > last_analysis_at):
+                last_analysis_at = row.created_at
+
+        optimization_objectives = [
+            row[0]
+            for row in db.query(Optimization.objective)
+            .filter(Optimization.user_id == user_id, Optimization.status == "done")
+            .all()
+        ]
+
+        return {
+            "total_analyses": len(rows),
+            "trend": trend,
+            "last_analysis_at": last_analysis_at.isoformat() if last_analysis_at else None,
+            "objective_fraco_counts": objective_fraco_counts,
+            "objective_total_counts": objective_total_counts,
+            "optimization_objectives": optimization_objectives,
+        }
 
 
 def create_optimization(optimization_id: str, analysis_id: str, user_id: str, objective: str) -> None:

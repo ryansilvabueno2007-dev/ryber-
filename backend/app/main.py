@@ -13,6 +13,7 @@ from app.routes.analyses import router as analyses_router
 from app.routes.auth import router as auth_router
 from app.routes.billing import router as billing_router
 from app.routes.optimize import router as optimize_router
+from app.routes.stats import router as stats_router
 
 app = FastAPI(title="Ryber API")
 
@@ -48,6 +49,7 @@ app.include_router(analyses_router)
 app.include_router(billing_router)
 app.include_router(admin_router)
 app.include_router(optimize_router)
+app.include_router(stats_router)
 
 
 @app.get("/api/health")
