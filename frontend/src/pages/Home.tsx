@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, type Variants } from 'framer-motion'
 import { Header } from '../components/Header'
@@ -79,24 +79,24 @@ function TrendIcon({ direction }: { direction: 'up' | 'down' | 'flat' }) {
 function MediaIcon({ type }: { type: string | null }) {
   if (type === 'image') {
     return (
-      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-ink-faint">
-        <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.6" />
-        <circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" strokeWidth="1.6" />
-        <path d="M21 16l-5.5-5.5-8.5 8.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 sm:h-7 sm:w-7 text-ink-faint">
+        <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M21 16l-5.5-5.5-8.5 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     )
   }
   return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-ink-faint">
-      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" />
+    <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 sm:h-7 sm:w-7 text-ink-faint">
+      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
       <path d="M10 9.5v5l4.5-2.5-4.5-2.5Z" fill="currentColor" />
     </svg>
   )
 }
 
-function TrophyIcon() {
+function TrophyIcon({ className = 'h-5 w-5 text-accent-strong' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-accent-strong">
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
       <path
         d="M8 4h8v4a4 4 0 0 1-8 0V4Z M8 5H5a2 2 0 0 0 2 3.5 M16 5h3a2 2 0 0 1-2 3.5 M12 12v3m-3 3h6 M9 18h6"
         stroke="currentColor"
@@ -108,27 +108,64 @@ function TrophyIcon() {
   )
 }
 
+function LayersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-ink-faint">
+      <path d="m12 3 9 5-9 5-9-5 9-5Z M3 13l9 5 9-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function GaugeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-ink-faint">
+      <path d="M4 15a8 8 0 1 1 16 0 M12 15l4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function TargetIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-ink-faint">
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  )
+}
+
+function AlertIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-ink-faint">
+      <path d="M12 3 2 20h20L12 3Z M12 9.5v4 M12 17h.01" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 14 },
   show: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, delay: i * 0.06, ease: 'easeOut' },
+    transition: { duration: 0.45, delay: i * 0.06, ease: 'easeOut' },
   }),
 }
 
 function StatCard({
   index,
+  icon,
   label,
   value,
   suffix = '',
+  valueText,
   context,
 }: {
   index: number
+  icon: ReactNode
   label: string
-  value: number | null
+  value?: number | null
   suffix?: string
-  context?: React.ReactNode
+  valueText?: string
+  context?: ReactNode
 }) {
   return (
     <motion.div
@@ -136,15 +173,18 @@ function StatCard({
       initial="hidden"
       animate="show"
       custom={index}
-      whileHover={{ y: -2 }}
-      className="rounded-2xl border border-line bg-panel p-5 shadow-card hover:border-white/[0.14] hover:shadow-glow transition-all flex flex-col justify-between min-h-[112px]"
+      whileHover={{ y: -3 }}
+      className="rounded-2xl border border-line bg-panel p-5 sm:p-6 shadow-card hover:border-white/[0.14] hover:shadow-glow transition-all flex flex-col justify-between min-h-[128px]"
     >
-      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-2">{label}</div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">{label}</div>
+        {icon}
+      </div>
       <div>
-        <div className="text-2xl sm:text-[28px] font-semibold tracking-tight text-ink leading-none">
-          {value === null ? '—' : <AnimatedNumber value={value} suffix={suffix} />}
+        <div className="text-[26px] sm:text-3xl font-semibold tracking-tight text-ink leading-none truncate">
+          {valueText ?? (value == null ? '—' : <AnimatedNumber value={value} suffix={suffix} />)}
         </div>
-        {context && <div className="mt-1.5 text-xs text-ink-soft">{context}</div>}
+        {context && <div className="mt-2 text-xs text-ink-soft">{context}</div>}
       </div>
     </motion.div>
   )
@@ -193,21 +233,21 @@ export function Home() {
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
       <Header />
 
-      <div className="relative flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-6 sm:space-y-8">
+      <div className="relative flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 sm:space-y-10">
         {error && <p className="text-danger text-sm">{error}</p>}
 
         {/* Resumo da conta */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="relative rounded-2xl border border-accent-line bg-accent-soft p-5 sm:p-7 shadow-glow overflow-hidden"
+          transition={{ duration: 0.45 }}
+          className="relative rounded-3xl border border-accent-line bg-accent-soft p-6 sm:p-9 shadow-glow overflow-hidden"
         >
           <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
-          <div className="relative flex flex-col gap-5">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="relative flex flex-col gap-6 sm:gap-7">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
               <div className="min-w-0">
-                <div className="text-xl sm:text-2xl font-semibold tracking-tight text-ink mb-1">
+                <div className="text-2xl sm:text-[28px] font-semibold tracking-tight text-ink mb-1.5">
                   Olá, {user?.name?.split(' ')[0] ?? 'de novo'} <span className="inline-block">👋</span>
                 </div>
                 <div className="text-sm text-ink-soft">
@@ -218,11 +258,11 @@ export function Home() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 shrink-0">
+              <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
                 {remaining === 0 ? (
                   <button
                     onClick={() => navigate('/planos')}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-accent text-white px-5 py-3 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-accent text-white px-6 py-3.5 text-sm font-medium shadow-glow hover:bg-accent-strong hover:shadow-lg active:scale-[0.98] transition-all"
                   >
                     {stats?.is_subscribed ? 'Fazer upgrade' : 'Assine para continuar usando'}
                   </button>
@@ -230,7 +270,7 @@ export function Home() {
                   <>
                     <button
                       onClick={() => navigate('/analyze')}
-                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-full bg-accent text-white px-5 py-3 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all whitespace-nowrap"
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-full bg-accent text-white px-6 py-3.5 text-sm font-medium shadow-glow hover:bg-accent-strong hover:shadow-lg active:scale-[0.98] transition-all whitespace-nowrap"
                     >
                       <PlusIcon />
                       Nova análise
@@ -238,7 +278,7 @@ export function Home() {
                     {stats?.is_subscribed && stats.plan !== 'infinity' && (
                       <button
                         onClick={() => navigate('/planos')}
-                        className="flex-1 sm:flex-initial rounded-full border border-accent-line text-ink px-5 py-3 text-sm font-medium hover:bg-accent-soft transition-all whitespace-nowrap"
+                        className="flex-1 sm:flex-initial rounded-full border border-accent-line bg-panel/40 text-ink px-6 py-3.5 text-sm font-medium hover:bg-panel active:scale-[0.98] transition-all whitespace-nowrap"
                       >
                         Gerenciar plano
                       </button>
@@ -250,20 +290,20 @@ export function Home() {
 
             {stats?.analyses_quota != null && (
               <div>
-                <div className="flex items-center justify-between text-xs text-ink-soft mb-2">
+                <div className="flex items-center justify-between text-xs text-ink-soft mb-2.5">
                   <span>
-                    <span className="text-ink font-medium">{stats.analyses_used}</span> de{' '}
-                    <span className="text-ink font-medium">{stats.analyses_quota}</span> análises utilizadas
+                    <span className="text-ink font-semibold">{stats.analyses_used}</span> de{' '}
+                    <span className="text-ink font-semibold">{stats.analyses_quota}</span> análises utilizadas
                   </span>
                   <span>
-                    Restam <span className="text-ink font-medium">{remaining}</span>
+                    Restam <span className="text-ink font-semibold">{remaining}</span>
                   </span>
                 </div>
                 <ProgressBar ratio={usageRatio} />
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-ink-faint pt-1 border-t border-white/[0.06]">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-ink-faint pt-5 border-t border-white/[0.07]">
               <span>
                 Última análise: <span className="text-ink-soft font-medium">{formatDate(stats?.last_analysis_at ?? null)}</span>
               </span>
@@ -276,7 +316,7 @@ export function Home() {
             </div>
 
             {remaining === 0 && stats?.is_subscribed && (
-              <p className="text-xs text-ink-soft -mt-2">
+              <p className="text-xs text-ink-soft -mt-3">
                 Faça upgrade de plano ou aguarde a renovação em{' '}
                 <span className="text-ink font-medium">{formatDate(stats?.plan_renews_at ?? null)}</span>.
               </p>
@@ -287,14 +327,14 @@ export function Home() {
         {loading && <p className="text-ink-soft text-sm">Carregando...</p>}
 
         {!loading && !hasData && (
-          <div className="rounded-2xl border border-line bg-panel p-8 sm:p-10 text-center shadow-card">
+          <div className="rounded-3xl border border-line bg-panel p-10 sm:p-14 text-center shadow-card">
             <div className="text-lg font-medium text-ink mb-2">Nenhuma análise ainda</div>
-            <p className="text-ink-soft text-sm mb-6 max-w-sm mx-auto">
+            <p className="text-ink-soft text-sm mb-7 max-w-sm mx-auto leading-relaxed">
               Envie seu primeiro criativo e veja como a IA de anúncios e o público real interpretam ele.
             </p>
             <button
               onClick={() => navigate('/analyze')}
-              className="inline-flex items-center gap-2 rounded-full bg-accent text-white px-6 py-3 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all"
+              className="inline-flex items-center gap-2 rounded-full bg-accent text-white px-6 py-3.5 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all"
             >
               <PlusIcon />
               Fazer minha primeira análise
@@ -305,10 +345,16 @@ export function Home() {
         {!loading && hasData && (
           <>
             {/* Cards de estatística */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-              <StatCard index={0} label="Criativos analisados" value={stats!.total_analyses} />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-5">
+              <StatCard
+                index={0}
+                icon={<LayersIcon />}
+                label="Criativos analisados"
+                value={stats!.total_analyses}
+              />
               <StatCard
                 index={1}
+                icon={<GaugeIcon />}
                 label="Média de performance"
                 value={stats!.average_score !== null ? Math.round(stats!.average_score * 100) : null}
                 suffix="%"
@@ -328,6 +374,7 @@ export function Home() {
               />
               <StatCard
                 index={2}
+                icon={<TrophyIcon className="h-4 w-4 text-ink-faint" />}
                 label="Melhor nota obtida"
                 value={stats!.best_score !== null ? Math.round(stats!.best_score * 100) : null}
                 suffix="%"
@@ -339,19 +386,19 @@ export function Home() {
               />
               <StatCard
                 index={3}
+                icon={<TargetIcon />}
                 label="Objetivo mais usado"
-                value={null}
-                context={<span className="text-sm text-ink font-medium">{stats!.most_used_objective ?? '—'}</span>}
+                valueText={stats!.most_used_objective ?? '—'}
               />
               <StatCard
                 index={4}
+                icon={<AlertIcon />}
                 label="Maior gargalo"
-                value={null}
-                context={<span className="text-sm text-ink font-medium">{stats!.weakest_objective ?? '—'}</span>}
+                valueText={stats!.weakest_objective ?? '—'}
               />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
               {/* Insights automáticos */}
               {stats!.insights.length > 0 && (
                 <motion.div
@@ -359,15 +406,15 @@ export function Home() {
                   initial="hidden"
                   animate="show"
                   custom={5}
-                  className="lg:col-span-2 rounded-2xl border border-line bg-panel p-5 sm:p-6 shadow-card"
+                  className="lg:col-span-2 rounded-2xl border border-line bg-panel p-6 sm:p-7 shadow-card"
                 >
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-soft border border-accent-line">
+                  <div className="flex items-center gap-2.5 mb-5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-soft border border-accent-line">
                       <SparkleIcon />
                     </span>
                     <div className="text-sm font-semibold text-ink tracking-tight">Insights da Ryber</div>
                   </div>
-                  <ul className="space-y-3">
+                  <ul className="space-y-4">
                     {stats!.insights.map((insight, i) => (
                       <motion.li
                         key={i}
@@ -375,10 +422,12 @@ export function Home() {
                         initial="hidden"
                         animate="show"
                         custom={6 + i}
-                        className="flex items-start gap-2.5 text-sm text-ink-soft leading-relaxed"
+                        className="flex items-start gap-3 text-sm text-ink-soft leading-relaxed"
                       >
-                        <span className="text-accent-strong mt-1.5 h-1 w-1 rounded-full bg-accent-strong shrink-0" />
-                        {insight}
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-panel-raised border border-line text-[10px] font-semibold text-accent-strong">
+                          {i + 1}
+                        </span>
+                        <span className="pt-px">{insight}</span>
                       </motion.li>
                     ))}
                   </ul>
@@ -392,32 +441,33 @@ export function Home() {
                   initial="hidden"
                   animate="show"
                   custom={6}
-                  className="rounded-2xl border border-accent-line bg-accent-soft p-5 sm:p-6 shadow-card flex flex-col"
+                  className="relative rounded-2xl border border-accent-line bg-accent-soft p-6 sm:p-7 shadow-card overflow-hidden flex flex-col"
                 >
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-panel border border-accent-line">
+                  <div className="absolute inset-0 bg-grid opacity-20 pointer-events-none" />
+                  <div className="relative flex items-center gap-2.5 mb-5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-panel border border-accent-line">
                       <TrophyIcon />
                     </span>
                     <div className="text-sm font-semibold text-ink tracking-tight">
                       {bestRecentMatchesAllTime ? 'Melhor criativo' : 'Destaque recente'}
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="text-lg font-semibold text-ink tracking-tight mb-1 truncate">
+                  <div className="relative flex-1">
+                    <div className="text-lg font-semibold text-ink tracking-tight mb-1.5 truncate">
                       {bestRecent.product ?? 'Análise sem produto identificado'}
                     </div>
-                    <div className="text-xs text-ink-soft mb-4">
+                    <div className="text-xs text-ink-soft mb-6">
                       {bestRecent.recommended_objective ?? 'Sem objetivo recomendado'} ·{' '}
                       {formatDate(bestRecent.created_at)}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-2xl font-semibold text-accent-strong tracking-tight">
+                  <div className="relative flex items-center justify-between gap-3">
+                    <span className="text-3xl font-semibold text-accent-strong tracking-tight">
                       {formatPct(bestRecent.performance_score)}
                     </span>
                     <Link
                       to={`/analysis/${bestRecent.id}`}
-                      className="text-xs font-medium rounded-full border border-accent-line px-3.5 py-2 text-ink hover:bg-panel transition-colors whitespace-nowrap"
+                      className="text-xs font-medium rounded-full border border-accent-line px-4 py-2.5 text-ink hover:bg-panel transition-colors whitespace-nowrap"
                     >
                       Abrir análise
                     </Link>
@@ -432,9 +482,9 @@ export function Home() {
               initial="hidden"
               animate="show"
               custom={7}
-              className="rounded-2xl border border-line bg-panel p-5 sm:p-6 shadow-card"
+              className="rounded-2xl border border-line bg-panel p-6 sm:p-7 shadow-card"
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-5">
                 <div className="text-sm font-semibold text-ink tracking-tight">Evolução da nota de performance</div>
                 {trend && (
                   <span
@@ -456,19 +506,20 @@ export function Home() {
 
             {/* Ações rápidas */}
             <motion.div variants={fadeUp} initial="hidden" animate="show" custom={8}>
-              <div className="text-sm font-semibold text-ink tracking-tight mb-3">Ações rápidas</div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="text-sm font-semibold text-ink tracking-tight mb-4">Ações rápidas</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                 {[
-                  { label: 'Nova análise', to: '/analyze' },
-                  { label: 'Ver histórico', to: '/history' },
-                  { label: 'Ver planos', to: '/planos' },
-                  { label: 'Página inicial', to: '/' },
+                  { label: 'Nova análise', to: '/analyze', icon: <PlusIcon /> },
+                  { label: 'Ver histórico', to: '/history', icon: <LayersIcon /> },
+                  { label: 'Ver planos', to: '/planos', icon: <GaugeIcon /> },
+                  { label: 'Página inicial', to: '/', icon: <TargetIcon /> },
                 ].map((action) => (
                   <Link
                     key={action.to}
                     to={action.to}
-                    className="rounded-2xl border border-line bg-panel px-4 py-4 text-sm font-medium text-ink text-center hover:border-accent-line hover:bg-accent-soft transition-all"
+                    className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-line bg-panel px-4 py-5 text-sm font-medium text-ink text-center hover:border-accent-line hover:bg-accent-soft hover:-translate-y-0.5 transition-all"
                   >
+                    <span className="text-ink-faint group-hover:text-accent-strong transition-colors">{action.icon}</span>
                     {action.label}
                   </Link>
                 ))}
@@ -488,22 +539,22 @@ export function Home() {
                   <motion.div key={item.id} variants={fadeUp} initial="hidden" animate="show" custom={10 + i}>
                     <Link
                       to={`/analysis/${item.id}`}
-                      className="flex items-center gap-4 rounded-2xl border border-line bg-panel p-4 shadow-card hover:border-white/[0.14] hover:-translate-y-0.5 transition-all"
+                      className="flex items-center gap-4 sm:gap-5 rounded-2xl border border-line bg-panel p-4 sm:p-5 shadow-card hover:border-white/[0.14] hover:-translate-y-0.5 hover:shadow-glow transition-all"
                     >
-                      <div className="h-11 w-11 rounded-xl border border-line bg-panel-raised flex items-center justify-center shrink-0">
+                      <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl border border-line bg-panel-raised flex items-center justify-center shrink-0">
                         <MediaIcon type={item.media_type} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-ink truncate">
                           {item.product ?? 'Análise sem produto identificado'}
                         </div>
-                        <div className="text-xs text-ink-soft mt-0.5 flex items-center gap-2">
+                        <div className="text-xs text-ink-soft mt-1 flex items-center gap-2 flex-wrap">
                           {item.recommended_objective && <span>{item.recommended_objective}</span>}
                           {item.created_at && <span>{formatDate(item.created_at)}</span>}
                         </div>
                       </div>
                       {item.performance_score !== null && (
-                        <span className="shrink-0 text-xs font-semibold text-accent-strong bg-accent-soft border border-accent-line rounded-full px-3 py-1">
+                        <span className="shrink-0 text-xs font-semibold text-accent-strong bg-accent-soft border border-accent-line rounded-full px-3.5 py-1.5">
                           {formatPct(item.performance_score)}
                         </span>
                       )}
