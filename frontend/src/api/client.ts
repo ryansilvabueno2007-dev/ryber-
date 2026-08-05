@@ -6,6 +6,7 @@ import type {
   AnalysisSummary,
   ComparisonResponse,
   CurrentUser,
+  DashboardStats,
   OptimizationObjective,
   OptimizationStatus,
 } from '../types'
@@ -20,12 +21,12 @@ async function asJson<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export async function signup(email: string, password: string): Promise<CurrentUser> {
+export async function signup(name: string, email: string, password: string): Promise<CurrentUser> {
   const res = await fetch(`${BASE_URL}/api/auth/signup`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ name, email, password }),
   })
   return asJson(res)
 }
@@ -62,6 +63,11 @@ export async function createCheckoutSession(plan: string, cpfCnpj?: string): Pro
 
 export async function listAnalyses(): Promise<AnalysisSummary[]> {
   const res = await fetch(`${BASE_URL}/api/analyses`, { credentials: 'include' })
+  return asJson(res)
+}
+
+export async function getStats(): Promise<DashboardStats> {
+  const res = await fetch(`${BASE_URL}/api/stats`, { credentials: 'include' })
   return asJson(res)
 }
 

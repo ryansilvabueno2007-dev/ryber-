@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Landing } from './pages/Landing'
 import { Home } from './pages/Home'
+import { NewAnalysis } from './pages/NewAnalysis'
 import { Analysis } from './pages/Analysis'
 import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
+import { Welcome } from './pages/Welcome'
 import { History } from './pages/History'
 import { BillingSuccess } from './pages/BillingSuccess'
 import { BillingCancel } from './pages/BillingCancel'
@@ -22,6 +24,22 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/welcome"
+              element={
+                <ProtectedRoute>
+                  <Welcome />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analyze"
+              element={
+                <ProtectedRoute>
+                  <NewAnalysis />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/app"
               element={

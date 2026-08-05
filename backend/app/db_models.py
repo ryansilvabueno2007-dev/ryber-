@@ -20,6 +20,7 @@ class User(Base):
 
     id = Column(String, primary_key=True, default=_uuid)
     email = Column(String, unique=True, nullable=False, index=True)
+    name = Column(String, nullable=True)
     password_hash = Column(String, nullable=False)
     is_admin = Column(Boolean, nullable=False, default=False)
     cpf_cnpj = Column(String, nullable=True)  # exigido pela Asaas pra criar o cliente/assinatura

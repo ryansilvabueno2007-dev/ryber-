@@ -44,7 +44,7 @@ async def create_checkout_session(
             db_user.asaas_customer_id = None
         if db_user.asaas_customer_id is None:
             customer = asaas_client.create_customer(
-                name=db_user.email, cpf_cnpj=doc, email=db_user.email, external_reference=db_user.id
+                name=db_user.name or db_user.email, cpf_cnpj=doc, email=db_user.email, external_reference=db_user.id
             )
             db_user.asaas_customer_id = customer["id"]
         customer_id = db_user.asaas_customer_id

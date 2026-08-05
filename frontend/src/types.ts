@@ -97,11 +97,35 @@ export interface AnalysisSummary {
   stage: Stage
   product: string | null
   created_at: string | null
+  performance_score: number | null
+  recommended_objective: string | null
+}
+
+export interface ScoreTrendPoint {
+  date: string
+  score: number
+}
+
+export interface DashboardStats {
+  name: string | null
+  plan: string | null
+  is_subscribed: boolean
+  analyses_used: number
+  analyses_quota: number | null
+  total_analyses: number
+  average_score: number | null
+  best_score: number | null
+  most_used_objective: string | null
+  weakest_objective: string | null
+  last_analysis_at: string | null
+  score_trend: ScoreTrendPoint[]
+  insights: string[]
 }
 
 export interface CurrentUser {
   id: string
   email: string
+  name: string | null
   is_subscribed: boolean
   is_admin: boolean
   plan: string | null

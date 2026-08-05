@@ -12,6 +12,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
 class SignupRequest(BaseModel):
+    name: str
     email: EmailStr
     password: str
 
@@ -24,10 +25,23 @@ class LoginRequest(BaseModel):
 class UserResponse(BaseModel):
     id: str
     email: str
+    name: str | None
     is_subscribed: bool
     is_admin: bool
     plan: str | None
     cpf_cnpj: str | None
+
+
+def _to_user_response(user: User) -> UserResponse:
+    return UserResponse(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        is_subscribed=user.is_subscribed,
+        is_admin=user.is_admin,
+        plan=user.plan,
+        cpf_cnpj=user.cpf_cnpj,
+    )
 
 
 def _set_session_cookie(response: Response, token: str) -> None:
@@ -47,6 +61,9 @@ def _set_session_cookie(response: Response, token: str) -> None:
 async def signup(
     request: Request, payload: SignupRequest, response: Response, db: DBSession = Depends(get_db)
 ) -> UserResponse:
+    name = payload.name.strip()
+    if not name:
+        raise HTTPException(400, "Informe seu nome.")
     if len(payload.password) < 8:
         raise HTTPException(400, "A senha precisa ter pelo menos 8 caracteres.")
 
@@ -54,21 +71,14 @@ async def signup(
     if db.query(User).filter(User.email == email).first() is not None:
         raise HTTPException(409, "Já existe uma conta com esse e-mail.")
 
-    user = User(email=email, password_hash=auth.hash_password(payload.password))
+    user = User(name=name, email=email, password_hash=auth.hash_password(payload.password))
     db.add(user)
     db.commit()
     db.refresh(user)
 
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
-    return UserResponse(
-        id=user.id,
-        email=user.email,
-        is_subscribed=user.is_subscribed,
-        is_admin=user.is_admin,
-        plan=user.plan,
-        cpf_cnpj=user.cpf_cnpj,
-    )
+    return _to_user_response(user)
 
 
 @router.post("/login", response_model=UserResponse)
@@ -79,14 +89,7 @@ async def login(payload: LoginRequest, response: Response, db: DBSession = Depen
 
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
-    return UserResponse(
-        id=user.id,
-        email=user.email,
-        is_subscribed=user.is_subscribed,
-        is_admin=user.is_admin,
-        plan=user.plan,
-        cpf_cnpj=user.cpf_cnpj,
-    )
+    return _to_user_response(user)
 
 
 @router.post("/logout")
@@ -103,11 +106,4 @@ async def logout(
 
 @router.get("/me", response_model=UserResponse)
 async def me(user: User = Depends(auth.require_user)) -> UserResponse:
-    return UserResponse(
-        id=user.id,
-        email=user.email,
-        is_subscribed=user.is_subscribed,
-        is_admin=user.is_admin,
-        plan=user.plan,
-        cpf_cnpj=user.cpf_cnpj,
-    )
+    return _to_user_response(user)
