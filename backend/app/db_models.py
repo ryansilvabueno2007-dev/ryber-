@@ -26,7 +26,7 @@ class User(Base):
     asaas_customer_id = Column(String, nullable=True)
     asaas_subscription_id = Column(String, nullable=True)
     is_subscribed = Column(Boolean, nullable=False, default=False)
-    plan = Column(String, nullable=True)  # "start" | "platinum" | "gold"
+    plan = Column(String, nullable=True)  # "start" | "gold" | "platinum" | "titanium" | "infinity"
     created_at = Column(DateTime(timezone=True), default=_now)
 
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")

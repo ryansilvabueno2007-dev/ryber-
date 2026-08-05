@@ -172,6 +172,13 @@ def count_analyses_this_month(user_id: str) -> int:
         )
 
 
+def count_all_analyses(user_id: str) -> int:
+    """Quantas análises esse usuário já criou desde sempre — usada pro teste grátis
+    (1 análise antes de assinar), que não reseta por mês."""
+    with SessionLocal() as db:
+        return db.query(func.count(Analysis.id)).filter(Analysis.user_id == user_id).scalar() or 0
+
+
 def create_optimization(optimization_id: str, analysis_id: str, user_id: str, objective: str) -> None:
     with SessionLocal() as db:
         db.add(

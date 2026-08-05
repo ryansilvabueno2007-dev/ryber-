@@ -20,12 +20,12 @@ async function asJson<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export async function signup(email: string, password: string, inviteCode: string): Promise<CurrentUser> {
+export async function signup(email: string, password: string): Promise<CurrentUser> {
   const res = await fetch(`${BASE_URL}/api/auth/signup`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, invite_code: inviteCode }),
+    body: JSON.stringify({ email, password }),
   })
   return asJson(res)
 }

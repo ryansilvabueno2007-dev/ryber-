@@ -22,7 +22,7 @@ from app.rate_limit import limiter
 
 router = APIRouter(prefix="/api", tags=["analyses"])
 
-PLAN_QUOTAS = {"start": 30, "platinum": 60, "gold": 100}
+PLAN_QUOTAS = {"start": 10, "gold": 30, "platinum": 60, "titanium": 100, "infinity": 300}
 
 
 def _require_owned(analysis_id: str, user: User) -> None:
@@ -36,7 +36,11 @@ def _check_quota(user: User) -> None:
     if user.is_admin:
         return
     if not user.is_subscribed or not user.plan:
-        raise HTTPException(402, "Assine um plano para analisar criativos.")
+        # Sem assinatura: libera exatamente 1 análise grátis (a vida inteira da conta,
+        # não por mês) antes de exigir plano.
+        if storage.count_all_analyses(user.id) >= 1:
+            raise HTTPException(402, "Você já usou sua análise grátis. Assine um plano para continuar.")
+        return
     quota = PLAN_QUOTAS.get(user.plan)
     if quota is None:
         return

@@ -23,9 +23,20 @@ interface Plan {
 }
 
 const PLANS: Plan[] = [
-  { id: 'start', name: 'Ryber Start', price: 97, quota: '30 vídeos/imagens por mês' },
-  { id: 'platinum', name: 'Ryber Platinum', price: 197, quota: '60 vídeos/imagens por mês' },
-  { id: 'gold', name: 'Ryber Gold', price: 297, quota: '100 vídeos/imagens por mês' },
+  { id: 'start', name: 'Ryber Start', price: 59.9, quota: '10 vídeos/imagens por mês' },
+  { id: 'gold', name: 'Ryber Gold', price: 179.9, quota: '30 vídeos/imagens por mês' },
+  { id: 'platinum', name: 'Ryber Platinum', price: 349.9, quota: '60 vídeos/imagens por mês' },
+  { id: 'titanium', name: 'Ryber Titanium', price: 569.9, quota: '100 vídeos/imagens por mês' },
+  { id: 'infinity', name: 'Ryber Infinity', price: 1499.9, quota: '300 vídeos/imagens por mês' },
+]
+
+const PLAN_FEATURES = [
+  'Leitura dupla: como a IA de anúncios interpreta o criativo e como o público reage de verdade',
+  'Roteiro de edição cena a cena por IA, com sugestões alinhadas ao objetivo de campanha escolhido',
+  'Nota de performance e benchmark de mercado por nicho',
+  'Comparação antes/depois entre versões do criativo',
+  'Compatibilidade com briefing do cliente',
+  'Histórico completo de análises',
 ]
 
 function formatBRL(value: number): string {
@@ -360,14 +371,12 @@ function PlanCard({ plan, highlight }: { plan: Plan; highlight?: boolean }) {
       </div>
       <div className="p-6 flex flex-col flex-1">
         <ul className="space-y-2.5 mb-6 text-sm flex-1">
-          {[plan.quota, 'Histórico completo de análises', 'Benchmark de mercado e nota de performance', 'Compatibilidade com briefing'].map(
-            (line) => (
-              <li key={line} className="flex items-start gap-2 text-ink-soft">
-                <Icon path={ICONS.check} />
-                {line}
-              </li>
-            )
-          )}
+          {[plan.quota, ...PLAN_FEATURES].map((line) => (
+            <li key={line} className="flex items-start gap-2 text-ink-soft">
+              <Icon path={ICONS.check} />
+              {line}
+            </li>
+          ))}
         </ul>
         {error && <p className="text-danger text-xs mb-3">{error}</p>}
         <button
@@ -657,7 +666,7 @@ export function Landing() {
 
       {/* Assinatura */}
       <section id="precos" className="px-4 sm:px-6 py-16 sm:py-24 border-t border-white/[0.06] scroll-mt-14">
-        <div className="max-w-5xl mx-auto text-center">
+        <div className="max-w-7xl mx-auto text-center">
           <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-accent mb-3 flex items-center justify-center gap-2">
             <span className="h-1 w-1 rounded-full bg-accent shadow-glow" />
             Assinatura
@@ -667,11 +676,11 @@ export function Landing() {
           </h2>
           <p className="text-ink-soft text-sm sm:text-base mb-14 leading-relaxed max-w-lg mx-auto">
             Sem pacote de créditos avulso — cada plano dá um número de análises por mês. Cancele quando
-            quiser.
+            quiser. Primeira análise é grátis, sem compromisso.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 items-stretch pt-4">
             {PLANS.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} highlight={plan.id === 'platinum'} />
+              <PlanCard key={plan.id} plan={plan} highlight={plan.id === 'titanium'} />
             ))}
           </div>
         </div>

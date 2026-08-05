@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session as DBSession
 
@@ -6,6 +6,7 @@ from app import auth
 from app.config import settings
 from app.db import get_db
 from app.db_models import User
+from app.rate_limit import limiter
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -13,7 +14,6 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str
-    invite_code: str
 
 
 class LoginRequest(BaseModel):
@@ -43,9 +43,10 @@ def _set_session_cookie(response: Response, token: str) -> None:
 
 
 @router.post("/signup", response_model=UserResponse)
-async def signup(payload: SignupRequest, response: Response, db: DBSession = Depends(get_db)) -> UserResponse:
-    if not settings.signup_invite_code or payload.invite_code != settings.signup_invite_code:
-        raise HTTPException(403, "Código de convite inválido.")
+@limiter.limit("3/day")
+async def signup(
+    request: Request, payload: SignupRequest, response: Response, db: DBSession = Depends(get_db)
+) -> UserResponse:
     if len(payload.password) < 8:
         raise HTTPException(400, "A senha precisa ter pelo menos 8 caracteres.")
 

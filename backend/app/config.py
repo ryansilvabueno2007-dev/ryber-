@@ -30,7 +30,6 @@ class Settings(BaseSettings):
     session_cookie_name: str = "ryber_session"
     session_ttl_days: int = 30
     session_cookie_secure: bool = True
-    signup_invite_code: str = ""
 
     # E-mails (separados por vírgula) promovidos a admin automaticamente na
     # inicialização — permite dar acesso de admin sem precisar de shell no servidor.

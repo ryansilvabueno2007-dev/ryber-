@@ -41,12 +41,10 @@ pip install -r requirements.txt
 copy .env.example .env
 ```
 
-Edite `backend/.env` e cole sua key, e defina um `SIGNUP_INVITE_CODE` (é exigido no cadastro — a
-plataforma não tem cadastro aberto):
+Edite `backend/.env` e cole sua key:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
-SIGNUP_INVITE_CODE=escolha-um-codigo
 ```
 
 Rode a migração do banco (cria as tabelas em `data/ryber.db`):
@@ -89,8 +87,9 @@ Acesse http://localhost:5173
 
 ## Notas
 
-- Login é obrigatório em toda a plataforma. Cadastro exige `SIGNUP_INVITE_CODE`; alternativa sem convite:
-  `python scripts/create_user.py <email> <senha>` (dentro de `backend/`, venv ativo).
+- Login é obrigatório em toda a plataforma. Cadastro é aberto (sem código de convite); pra criar um usuário
+  direto por linha de comando (ex: admin local): `python scripts/create_user.py <email> <senha>` (dentro de
+  `backend/`, venv ativo).
 - Banco de dados real (SQLite local, Postgres em produção) via SQLAlchemy + Alembic — cada análise é uma linha
   na tabela `analyses`, vinculada ao `user_id` do dono. Os vídeos e frames extraídos continuam em disco
   (`backend/data/uploads/`, `backend/data/raw/`), não no banco.

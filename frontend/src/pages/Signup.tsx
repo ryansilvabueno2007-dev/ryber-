@@ -8,7 +8,6 @@ export function Signup() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [inviteCode, setInviteCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -17,7 +16,7 @@ export function Signup() {
     setError(null)
     setLoading(true)
     try {
-      await signup(email, password, inviteCode)
+      await signup(email, password)
       navigate('/app')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível criar a conta.')
@@ -51,13 +50,6 @@ export function Signup() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Senha (mín. 8 caracteres)"
-              className="w-full rounded-full border border-line bg-panel px-5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-shadow"
-            />
-            <input
-              required
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              placeholder="Código de convite"
               className="w-full rounded-full border border-line bg-panel px-5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft transition-shadow"
             />
           </div>

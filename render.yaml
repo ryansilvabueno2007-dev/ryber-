@@ -29,8 +29,6 @@ services:
         value: "40"
       - key: CORS_ORIGIN
         sync: false
-      - key: SIGNUP_INVITE_CODE
-        sync: false
       - key: ADMIN_EMAILS
         sync: false
       - key: SESSION_COOKIE_SECURE
