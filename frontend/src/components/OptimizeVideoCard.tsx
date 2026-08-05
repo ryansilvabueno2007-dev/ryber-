@@ -155,12 +155,7 @@ export function OptimizeVideoCard({ analysisId }: { analysisId: string }) {
       setGenerating(created)
       startPolling(created.id)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Não foi possível iniciar a geração.'
-      setError(
-        message.includes('Assine um plano')
-          ? 'Assine um plano para gerar o roteiro de edição.'
-          : message
-      )
+      setError(err instanceof Error ? err.message : 'Não foi possível iniciar a geração.')
     }
   }
 

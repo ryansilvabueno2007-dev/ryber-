@@ -39,9 +39,6 @@ async def create_optimization(
     if storage.get_owner(analysis_id) != user.id:
         raise HTTPException(404, "Análise não encontrada.")
 
-    if not user.is_admin and not user.is_subscribed:
-        raise HTTPException(402, "Assine um plano para gerar o roteiro de edição.")
-
     if storage.load_result(analysis_id) is None:
         raise HTTPException(409, "A análise ainda não terminou de processar.")
 
