@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Landing } from './pages/Landing'
+import { Plans } from './pages/Plans'
 import { Home } from './pages/Home'
 import { NewAnalysis } from './pages/NewAnalysis'
 import { Analysis } from './pages/Analysis'
@@ -22,6 +23,7 @@ function App() {
         <ErrorBoundary>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/planos" element={<Plans />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route

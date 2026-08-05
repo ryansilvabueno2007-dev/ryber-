@@ -62,3 +62,13 @@ def get_subscription_payments(subscription_id: str) -> list[dict]:
     )
     resp.raise_for_status()
     return resp.json().get("data", [])
+
+
+def cancel_subscription(subscription_id: str) -> None:
+    """Cancela uma assinatura — para de gerar cobrança nova e remove as pendentes.
+    Usado ao trocar de plano, pra não deixar duas assinaturas cobrando em paralelo.
+    Se a assinatura já não existir mais do lado da Asaas (404), não é erro pra nós."""
+    resp = httpx.delete(f"{_base_url()}/subscriptions/{subscription_id}", headers=_headers(), timeout=30)
+    if resp.status_code == 404:
+        return
+    resp.raise_for_status()

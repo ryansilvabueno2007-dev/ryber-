@@ -130,13 +130,22 @@ export function Home() {
                 </span>
               </div>
             </div>
-            <button
-              onClick={() => navigate('/analyze')}
-              className="shrink-0 inline-flex items-center gap-2 rounded-full bg-accent text-white px-5 py-3 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all"
-            >
-              <PlusIcon />
-              Nova análise
-            </button>
+            {remaining === 0 ? (
+              <button
+                onClick={() => navigate('/planos')}
+                className="shrink-0 inline-flex items-center gap-2 rounded-full bg-accent text-white px-5 py-3 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all"
+              >
+                Assine para continuar usando
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/analyze')}
+                className="shrink-0 inline-flex items-center gap-2 rounded-full bg-accent text-white px-5 py-3 text-sm font-medium shadow-glow hover:bg-accent-strong transition-all"
+              >
+                <PlusIcon />
+                Nova análise
+              </button>
+            )}
           </div>
         </div>
 

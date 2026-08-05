@@ -40,7 +40,7 @@ export function Header({ right }: { right?: ReactNode }) {
               )}
               {!user.is_subscribed && (
                 <Link
-                  to="/#precos"
+                  to="/planos"
                   className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-glow hover:bg-accent-strong transition-colors whitespace-nowrap"
                 >
                   Assinar

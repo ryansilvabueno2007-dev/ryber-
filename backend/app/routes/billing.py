@@ -48,7 +48,16 @@ async def create_checkout_session(
             )
             db_user.asaas_customer_id = customer["id"]
         customer_id = db_user.asaas_customer_id
+        previous_subscription_id = db_user.asaas_subscription_id
         db.commit()
+
+    if previous_subscription_id:
+        # Troca de plano (ou reassinatura) — cancela a assinatura anterior antes de criar
+        # a nova, senão as duas ficam cobrando em paralelo.
+        try:
+            asaas_client.cancel_subscription(previous_subscription_id)
+        except Exception:  # noqa: BLE001
+            pass
 
     subscription = asaas_client.create_subscription(
         customer_id=customer_id,
