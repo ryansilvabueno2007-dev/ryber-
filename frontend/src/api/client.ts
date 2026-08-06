@@ -21,12 +21,17 @@ async function asJson<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export async function signup(name: string, email: string, password: string): Promise<CurrentUser> {
+export async function signup(
+  name: string,
+  email: string,
+  password: string,
+  termsAccepted: boolean
+): Promise<CurrentUser> {
   const res = await fetch(`${BASE_URL}/api/auth/signup`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify({ name, email, password, terms_accepted: termsAccepted }),
   })
   return asJson(res)
 }
@@ -41,12 +46,20 @@ export async function login(email: string, password: string): Promise<CurrentUse
   return asJson(res)
 }
 
-export async function loginWithGoogle(idToken: string, createIfMissing: boolean): Promise<CurrentUser> {
+export async function loginWithGoogle(
+  idToken: string,
+  createIfMissing: boolean,
+  termsAccepted = true
+): Promise<CurrentUser> {
   const res = await fetch(`${BASE_URL}/api/auth/google`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id_token: idToken, create_if_missing: createIfMissing }),
+    body: JSON.stringify({
+      id_token: idToken,
+      create_if_missing: createIfMissing,
+      terms_accepted: termsAccepted,
+    }),
   })
   return asJson(res)
 }
@@ -65,6 +78,23 @@ export async function resetPassword(token: string, password: string): Promise<vo
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, password }),
+  })
+  await asJson(res)
+}
+
+export async function verifyEmail(token: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/auth/verify-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  })
+  await asJson(res)
+}
+
+export async function resendVerification(): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/auth/resend-verification`, {
+    method: 'POST',
+    credentials: 'include',
   })
   await asJson(res)
 }

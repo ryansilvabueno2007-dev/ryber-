@@ -11,6 +11,7 @@ export function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -21,9 +22,13 @@ export function Signup() {
       setError('As senhas não coincidem.')
       return
     }
+    if (!termsAccepted) {
+      setError('Você precisa aceitar os Termos de Uso e a Política de Privacidade.')
+      return
+    }
     setLoading(true)
     try {
-      await signup(name, email, password)
+      await signup(name, email, password, termsAccepted)
       navigate('/welcome')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível criar a conta.')
@@ -84,17 +89,37 @@ export function Signup() {
             />
           </div>
 
+          <label className="flex items-start gap-2.5 text-xs text-ink-soft leading-relaxed cursor-pointer">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-line accent-accent cursor-pointer"
+            />
+            <span>
+              Li e concordo com os{' '}
+              <Link to="/termos" target="_blank" className="text-accent hover:underline">
+                Termos de Uso
+              </Link>{' '}
+              e a{' '}
+              <Link to="/privacidade" target="_blank" className="text-accent hover:underline">
+                Política de Privacidade
+              </Link>{' '}
+              da Ryber.
+            </span>
+          </label>
+
           {error && <p className="text-danger text-sm text-center">{error}</p>}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !termsAccepted}
             className="w-full rounded-full bg-accent text-white px-6 py-3.5 font-medium shadow-glow hover:bg-accent-strong transition-all disabled:opacity-60"
           >
             {loading ? 'Criando...' : 'Criar conta'}
           </button>
 
-          <GoogleSignInButton mode="signup" onError={setError} />
+          <GoogleSignInButton mode="signup" onError={setError} termsAccepted={termsAccepted} />
 
           <div className="text-center space-y-1">
             <p className="text-xs text-ink-soft">

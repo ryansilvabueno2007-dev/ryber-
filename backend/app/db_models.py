@@ -44,6 +44,13 @@ class User(Base):
     # (plan_canceled=True), vira a data em que o acesso realmente termina.
     plan_renews_at = Column(Date, nullable=True)
     plan_canceled = Column(Boolean, nullable=False, default=False)
+    # Carimbo de quando aceitou os Termos de Uso/Política de Privacidade no cadastro —
+    # exigido no backend também (não só no checkbox do frontend), como prova de aceite.
+    terms_accepted_at = Column(DateTime(timezone=True), nullable=True)
+    # Nulo = e-mail ainda não confirmado. Contas criadas via Google já nascem
+    # verificadas (o próprio Google confirma o e-mail); cadastro por senha precisa
+    # confirmar clicando no link enviado por e-mail.
+    email_verified_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=_now)
 
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
@@ -68,6 +75,21 @@ class PasswordResetToken(Base):
     com used_at em vez de apagado, pra não permitir reuso do mesmo link."""
 
     __tablename__ = "password_reset_tokens"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+
+class EmailVerificationToken(Base):
+    """Token de confirmação de e-mail — mesmo padrão de PasswordResetToken (só hash
+    guardado, expira, uso único). TTL mais longo (24h) que o de reset de senha, já que
+    não é urgente como recuperar acesso à conta."""
+
+    __tablename__ = "email_verification_tokens"
 
     id = Column(String, primary_key=True, default=_uuid)
     token_hash = Column(String, unique=True, nullable=False, index=True)

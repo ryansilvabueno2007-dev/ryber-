@@ -8,6 +8,7 @@ import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
 import { ForgotPassword } from './pages/ForgotPassword'
 import { ResetPassword } from './pages/ResetPassword'
+import { VerifyEmail } from './pages/VerifyEmail'
 import { Welcome } from './pages/Welcome'
 import { History } from './pages/History'
 import { BillingSuccess } from './pages/BillingSuccess'
@@ -34,6 +35,7 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/esqueci-senha" element={<ForgotPassword />} />
             <Route path="/redefinir-senha" element={<ResetPassword />} />
+            <Route path="/verificar-email" element={<VerifyEmail />} />
             <Route
               path="/welcome"
               element={

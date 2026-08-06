@@ -6,8 +6,8 @@ interface AuthContextValue {
   user: CurrentUser | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
-  signup: (name: string, email: string, password: string) => Promise<void>
-  loginWithGoogle: (idToken: string, createIfMissing: boolean) => Promise<void>
+  signup: (name: string, email: string, password: string, termsAccepted: boolean) => Promise<void>
+  loginWithGoogle: (idToken: string, createIfMissing: boolean, termsAccepted?: boolean) => Promise<void>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -30,13 +30,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(current)
   }, [])
 
-  const signup = useCallback(async (name: string, email: string, password: string) => {
-    const current = await api.signup(name, email, password)
+  const signup = useCallback(async (name: string, email: string, password: string, termsAccepted: boolean) => {
+    const current = await api.signup(name, email, password, termsAccepted)
     setUser(current)
   }, [])
 
-  const loginWithGoogle = useCallback(async (idToken: string, createIfMissing: boolean) => {
-    const current = await api.loginWithGoogle(idToken, createIfMissing)
+  const loginWithGoogle = useCallback(async (idToken: string, createIfMissing: boolean, termsAccepted = true) => {
+    const current = await api.loginWithGoogle(idToken, createIfMissing, termsAccepted)
     setUser(current)
   }, [])
 

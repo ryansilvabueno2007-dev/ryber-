@@ -29,12 +29,21 @@ declare global {
 interface Props {
   mode: 'signup' | 'login'
   onError: (message: string) => void
+  // Só é relevante pra mode="signup" (login nunca cria conta, então nunca depende
+  // disso) — controla se o clique cria a conta ou é bloqueado com um aviso.
+  termsAccepted?: boolean
 }
 
-export function GoogleSignInButton({ mode, onError }: Props) {
+export function GoogleSignInButton({ mode, onError, termsAccepted = true }: Props) {
   const { loginWithGoogle } = useAuth()
   const navigate = useNavigate()
   const containerRef = useRef<HTMLDivElement>(null)
+  // O callback do Google só é registrado uma vez no mount — sem o ref, ele ficaria
+  // preso no valor de termsAccepted daquele instante inicial, ignorando o checkbox.
+  const termsAcceptedRef = useRef(termsAccepted)
+  useEffect(() => {
+    termsAcceptedRef.current = termsAccepted
+  }, [termsAccepted])
 
   useEffect(() => {
     if (!CLIENT_ID) return
@@ -47,8 +56,12 @@ export function GoogleSignInButton({ mode, onError }: Props) {
       window.google.accounts.id.initialize({
         client_id: CLIENT_ID,
         callback: async (response) => {
+          if (mode === 'signup' && !termsAcceptedRef.current) {
+            onError('Marque que você aceita os Termos de Uso e a Política de Privacidade antes de continuar.')
+            return
+          }
           try {
-            await loginWithGoogle(response.credential, mode === 'signup')
+            await loginWithGoogle(response.credential, mode === 'signup', termsAcceptedRef.current)
             navigate(mode === 'signup' ? '/welcome' : '/app')
           } catch (err) {
             onError(err instanceof Error ? err.message : 'Não foi possível entrar com o Google.')
@@ -80,7 +93,12 @@ export function GoogleSignInButton({ mode, onError }: Props) {
         <span className="text-[11px] text-ink-faint uppercase tracking-wide">ou</span>
         <div className="h-px flex-1 bg-line" />
       </div>
-      <div ref={containerRef} className="flex justify-center" />
+      <div
+        ref={containerRef}
+        className={`flex justify-center ${
+          mode === 'signup' && !termsAccepted ? 'opacity-50 pointer-events-none' : ''
+        }`}
+      />
     </div>
   )
 }

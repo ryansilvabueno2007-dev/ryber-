@@ -134,6 +134,7 @@ export interface CurrentUser {
   plan_renews_at: string | null
   plan_canceled: boolean
   cpf_cnpj: string | null
+  email_verified: boolean
 }
 
 export type OptimizationObjective =

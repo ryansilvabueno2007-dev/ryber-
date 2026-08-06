@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from app.config import settings
 from app.db import get_db
-from app.db_models import PasswordResetToken
+from app.db_models import EmailVerificationToken, PasswordResetToken
 from app.db_models import Session as SessionModel
 from app.db_models import User
 
@@ -49,10 +49,10 @@ def create_password_reset_token(db: DBSession, user: User) -> str:
     return token
 
 
-def consume_password_reset_token(db: DBSession, token: str) -> User | None:
-    """Valida o token e já marca como usado (uso único) — retorna None se não existir,
-    já tiver sido usado, ou tiver expirado (1h)."""
-    record = db.query(PasswordResetToken).filter(PasswordResetToken.token_hash == _hash_token(token)).first()
+def _consume_token(db: DBSession, model, token: str) -> User | None:
+    """Valida um token de uso único (PasswordResetToken/EmailVerificationToken) e já
+    marca como usado — retorna None se não existir, já tiver sido usado, ou expirado."""
+    record = db.query(model).filter(model.token_hash == _hash_token(token)).first()
     if record is None or record.used_at is not None:
         return None
     expires_at = record.expires_at
@@ -63,6 +63,22 @@ def consume_password_reset_token(db: DBSession, token: str) -> User | None:
     record.used_at = datetime.now(timezone.utc)
     db.commit()
     return db.get(User, record.user_id)
+
+
+def consume_password_reset_token(db: DBSession, token: str) -> User | None:
+    return _consume_token(db, PasswordResetToken, token)
+
+
+def create_email_verification_token(db: DBSession, user: User) -> str:
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+    db.add(EmailVerificationToken(token_hash=_hash_token(token), user_id=user.id, expires_at=expires_at))
+    db.commit()
+    return token
+
+
+def consume_email_verification_token(db: DBSession, token: str) -> User | None:
+    return _consume_token(db, EmailVerificationToken, token)
 
 
 def get_current_user(

@@ -29,10 +29,15 @@ export function Welcome() {
           <SparkleIcon />
         </div>
         <h1 className="text-3xl font-semibold tracking-tight text-ink mb-2.5">Bem-vindo à Ryber{user?.name ? `, ${user.name.split(' ')[0]}` : ''}.</h1>
-        <p className="text-ink-soft text-base leading-relaxed mb-8">
+        <p className={`text-ink-soft text-base leading-relaxed ${user?.email_verified ? 'mb-8' : 'mb-3'}`}>
           Sua conta foi criada com sucesso. Você possui{' '}
           <span className="text-ink font-medium">1 análise gratuita disponível</span>, sem compromisso.
         </p>
+        {!user?.email_verified && (
+          <p className="text-ink-faint text-sm leading-relaxed mb-8">
+            Enviamos um link de confirmação para o seu e-mail — vale dar uma olhada quando puder.
+          </p>
+        )}
         <button
           type="button"
           onClick={() => navigate('/analyze')}

@@ -6,7 +6,7 @@ import { ScoreTrendChart } from '../components/ScoreTrendChart'
 import { AnimatedNumber } from '../components/AnimatedNumber'
 import { ProgressBar } from '../components/ProgressBar'
 import { useAuth } from '../context/AuthContext'
-import { getStats, listAnalyses } from '../api/client'
+import { getStats, listAnalyses, resendVerification } from '../api/client'
 import type { AnalysisSummary, DashboardStats, ScoreTrendPoint } from '../types'
 
 const PLAN_LABELS: Record<string, string> = {
@@ -156,6 +156,17 @@ export function Home() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recent, setRecent] = useState<AnalysisSummary[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+
+  async function handleResendVerification() {
+    setResendState('sending')
+    try {
+      await resendVerification()
+      setResendState('sent')
+    } catch {
+      setResendState('error')
+    }
+  }
 
   useEffect(() => {
     Promise.all([getStats(), listAnalyses()])
@@ -194,6 +205,26 @@ export function Home() {
       <Header />
 
       <div className="relative flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-6 sm:space-y-8">
+        {user && !user.email_verified && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-warn/25 bg-warn-soft px-4 py-3 text-sm text-ink">
+            <span>
+              Confirme seu e-mail ({user.email}) pra garantir o acesso à sua conta — enviamos um link quando
+              você se cadastrou.
+            </span>
+            {resendState === 'sent' ? (
+              <span className="text-xs text-ink-soft shrink-0">E-mail reenviado.</span>
+            ) : (
+              <button
+                onClick={handleResendVerification}
+                disabled={resendState === 'sending'}
+                className="shrink-0 text-xs font-medium text-accent hover:underline disabled:opacity-60"
+              >
+                {resendState === 'sending' ? 'Enviando...' : 'Reenviar e-mail'}
+              </button>
+            )}
+          </div>
+        )}
+
         {error && <p className="text-danger text-sm">{error}</p>}
 
         {/* Resumo da conta */}

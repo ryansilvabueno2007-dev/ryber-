@@ -1,4 +1,5 @@
 import secrets
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from google.auth.transport import requests as google_requests
@@ -21,6 +22,7 @@ class SignupRequest(BaseModel):
     name: str
     email: EmailStr
     password: str
+    terms_accepted: bool = False
 
 
 class LoginRequest(BaseModel):
@@ -33,6 +35,8 @@ class GoogleAuthRequest(BaseModel):
     # False no login: não cria conta nova se o e-mail do Google não tiver cadastro,
     # só entra em quem já existe. True no cadastro: cria se não existir.
     create_if_missing: bool = True
+    # Só é checado quando uma conta nova de fato vai ser criada (login nunca cria).
+    terms_accepted: bool = False
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -42,6 +46,10 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     password: str
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
 
 
 class UserResponse(BaseModel):
@@ -54,6 +62,7 @@ class UserResponse(BaseModel):
     plan_renews_at: str | None
     plan_canceled: bool
     cpf_cnpj: str | None
+    email_verified: bool
 
 
 def _to_user_response(user: User) -> UserResponse:
@@ -67,6 +76,7 @@ def _to_user_response(user: User) -> UserResponse:
         plan_renews_at=user.plan_renews_at.isoformat() if user.plan_renews_at else None,
         plan_canceled=user.plan_canceled,
         cpf_cnpj=user.cpf_cnpj,
+        email_verified=user.email_verified_at is not None,
     )
 
 
@@ -94,6 +104,40 @@ def _password_reset_email_html(name: str | None, reset_link: str) -> str:
     """
 
 
+def _verification_email_html(name: str | None, verify_link: str) -> str:
+    greeting = f"Oi, {name}!" if name else "Oi!"
+    return f"""
+    <div style="font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+      <p style="font-size: 16px;">{greeting}</p>
+      <p style="font-size: 15px; line-height: 1.6;">
+        Falta só confirmar seu e-mail pra garantir o acesso à sua conta na Ryber. Clique no
+        botão abaixo:
+      </p>
+      <p style="text-align: center; margin: 32px 0;">
+        <a href="{verify_link}"
+           style="background: #5b46d6; color: #fff; padding: 12px 28px; border-radius: 999px;
+                  text-decoration: none; font-weight: 600; font-size: 15px; display: inline-block;">
+          Confirmar e-mail
+        </a>
+      </p>
+      <p style="font-size: 13px; color: #666; line-height: 1.5;">
+        Esse link expira em 24 horas. Se você não criou uma conta na Ryber, pode ignorar
+        este e-mail.
+      </p>
+    </div>
+    """
+
+
+def _send_verification_email(db: DBSession, user: User) -> None:
+    token = auth.create_email_verification_token(db, user)
+    verify_link = f"{settings.frontend_url}/verificar-email?token={token}"
+    email_client.send_email(
+        to=user.email,
+        subject="Confirme seu e-mail na Ryber",
+        html=_verification_email_html(user.name, verify_link),
+    )
+
+
 def _set_session_cookie(response: Response, token: str) -> None:
     response.set_cookie(
         key=settings.session_cookie_name,
@@ -116,15 +160,24 @@ async def signup(
         raise HTTPException(400, "Informe seu nome.")
     if len(payload.password) < 8:
         raise HTTPException(400, "A senha precisa ter pelo menos 8 caracteres.")
+    if not payload.terms_accepted:
+        raise HTTPException(400, "Você precisa aceitar os Termos de Uso e a Política de Privacidade.")
 
     email = payload.email.lower()
     if db.query(User).filter(User.email == email).first() is not None:
         raise HTTPException(409, "Já existe uma conta com esse e-mail.")
 
-    user = User(name=name, email=email, password_hash=auth.hash_password(payload.password))
+    user = User(
+        name=name,
+        email=email,
+        password_hash=auth.hash_password(payload.password),
+        terms_accepted_at=datetime.now(timezone.utc),
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    _send_verification_email(db, user)
 
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
@@ -165,12 +218,18 @@ async def google_auth(
     if user is None:
         if not payload.create_if_missing:
             raise HTTPException(404, "Nenhuma conta encontrada com esse e-mail do Google. Crie uma conta primeiro.")
+        if not payload.terms_accepted:
+            raise HTTPException(400, "Você precisa aceitar os Termos de Uso e a Política de Privacidade.")
         # Conta criada via Google não usa senha própria — gera um hash aleatório
         # inutilizável só pra satisfazer a coluna NOT NULL, nunca é usado pra logar.
+        # E-mail já sai verificado — o próprio Google confirmou (checado acima).
+        now = datetime.now(timezone.utc)
         user = User(
             email=email,
             name=idinfo.get("name") or None,
             password_hash=auth.hash_password(secrets.token_hex(32)),
+            terms_accepted_at=now,
+            email_verified_at=now,
         )
         db.add(user)
         db.commit()
@@ -218,6 +277,30 @@ async def reset_password(
     # trocar a senha.
     db.query(SessionModel).filter(SessionModel.user_id == user.id).delete()
     db.commit()
+    return {"status": "ok"}
+
+
+@router.post("/verify-email")
+@limiter.limit("20/hour")
+async def verify_email(
+    request: Request, payload: VerifyEmailRequest, db: DBSession = Depends(get_db)
+) -> dict:
+    user = auth.consume_email_verification_token(db, payload.token)
+    if user is None:
+        raise HTTPException(400, "Link inválido ou expirado. Solicite um novo.")
+    user.email_verified_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"status": "ok"}
+
+
+@router.post("/resend-verification")
+@limiter.limit("3/hour")
+async def resend_verification(
+    request: Request, db: DBSession = Depends(get_db), user: User = Depends(auth.require_user)
+) -> dict:
+    if user.email_verified_at is not None:
+        raise HTTPException(400, "Esse e-mail já está confirmado.")
+    _send_verification_email(db, user)
     return {"status": "ok"}
 
 
