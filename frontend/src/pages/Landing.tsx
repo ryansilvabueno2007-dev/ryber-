@@ -590,6 +590,7 @@ export function Landing() {
             <FooterColumn title="Contato">
               <a href="mailto:contato@ryber.app" className="block hover:text-ink transition-colors">contato@ryber.app</a>
               <Link to="/privacidade" className="block hover:text-ink transition-colors">Política de Privacidade</Link>
+              <Link to="/termos" className="block hover:text-ink transition-colors">Termos de Uso</Link>
             </FooterColumn>
           </div>
           <div className="border-t border-white/[0.06] pt-6 text-xs text-ink-faint text-center">

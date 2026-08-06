@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
 import { PlanCard } from '../components/PlanCard'
 import { CancelSubscriptionModal } from '../components/CancelSubscriptionModal'
@@ -140,6 +141,10 @@ export function Plans() {
               </div>
             ))}
           </div>
+          <p className="text-xs text-ink-faint text-center mt-6">
+            Veja os detalhes completos na nossa{' '}
+            <Link to="/termos" className="text-accent hover:underline">Política de Cancelamento e Reembolso</Link>.
+          </p>
         </div>
       </div>
     </div>

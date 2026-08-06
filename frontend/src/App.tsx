@@ -11,6 +11,7 @@ import { History } from './pages/History'
 import { BillingSuccess } from './pages/BillingSuccess'
 import { BillingCancel } from './pages/BillingCancel'
 import { Privacy } from './pages/Privacy'
+import { Terms } from './pages/Terms'
 import { Admin } from './pages/Admin'
 import { Comparison } from './pages/Comparison'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -26,6 +27,7 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/planos" element={<Plans />} />
             <Route path="/privacidade" element={<Privacy />} />
+            <Route path="/termos" element={<Terms />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route
