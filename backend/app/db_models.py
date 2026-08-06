@@ -51,6 +51,10 @@ class User(Base):
     # verificadas (o próprio Google confirma o e-mail); cadastro por senha precisa
     # confirmar clicando no link enviado por e-mail.
     email_verified_at = Column(DateTime(timezone=True), nullable=True)
+    # True quando esse e-mail já tinha uma conta antes (mesmo que excluída) — a conta
+    # nasce sem direito a análise grátis, pra excluir e recriar a conta não virar um
+    # jeito de ganhar testes grátis ilimitados. Ver KnownEmail.
+    trial_already_claimed = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), default=_now)
 
     sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
@@ -81,6 +85,18 @@ class PasswordResetToken(Base):
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     used_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+
+class KnownEmail(Base):
+    """Lista mínima de e-mails que já tiveram conta na Ryber em algum momento — sobrevive
+    à exclusão da conta de propósito, só pra decidir se um novo cadastro com esse
+    e-mail tem direito à análise grátis ou não. Não guarda mais nada além do e-mail."""
+
+    __tablename__ = "known_emails"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    email = Column(String, unique=True, nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), default=_now)
 
 

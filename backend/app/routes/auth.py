@@ -10,7 +10,14 @@ from sqlalchemy.orm import Session as DBSession
 from app import asaas_client, auth, email_client, storage_r2
 from app.config import settings
 from app.db import get_db
-from app.db_models import Analysis, CancellationFeedback, EmailVerificationToken, Optimization, PasswordResetToken
+from app.db_models import (
+    Analysis,
+    CancellationFeedback,
+    EmailVerificationToken,
+    KnownEmail,
+    Optimization,
+    PasswordResetToken,
+)
 from app.db_models import Session as SessionModel
 from app.db_models import User
 from app.rate_limit import limiter
@@ -129,6 +136,17 @@ def _verification_email_html(name: str | None, verify_link: str) -> str:
     """
 
 
+def _register_email_and_check_trial_claimed(db: DBSession, email: str) -> bool:
+    """Retorna True se esse e-mail já tinha tido uma conta antes (mesmo que excluída
+    depois) — nesse caso a conta nova nasce sem direito a análise grátis, pra excluir
+    e recriar a conta não virar um jeito de ganhar testes grátis ilimitados. Se for a
+    primeira vez, registra o e-mail pra valer daqui pra frente."""
+    already_known = db.query(KnownEmail).filter(KnownEmail.email == email).first() is not None
+    if not already_known:
+        db.add(KnownEmail(email=email))
+    return already_known
+
+
 def _send_verification_email(db: DBSession, user: User) -> None:
     token = auth.create_email_verification_token(db, user)
     verify_link = f"{settings.frontend_url}/verificar-email?token={token}"
@@ -168,11 +186,13 @@ async def signup(
     if db.query(User).filter(User.email == email).first() is not None:
         raise HTTPException(409, "Já existe uma conta com esse e-mail.")
 
+    trial_already_claimed = _register_email_and_check_trial_claimed(db, email)
     user = User(
         name=name,
         email=email,
         password_hash=auth.hash_password(payload.password),
         terms_accepted_at=datetime.now(timezone.utc),
+        trial_already_claimed=trial_already_claimed,
     )
     db.add(user)
     db.commit()
@@ -225,12 +245,14 @@ async def google_auth(
         # inutilizável só pra satisfazer a coluna NOT NULL, nunca é usado pra logar.
         # E-mail já sai verificado — o próprio Google confirmou (checado acima).
         now = datetime.now(timezone.utc)
+        trial_already_claimed = _register_email_and_check_trial_claimed(db, email)
         user = User(
             email=email,
             name=idinfo.get("name") or None,
             password_hash=auth.hash_password(secrets.token_hex(32)),
             terms_accepted_at=now,
             email_verified_at=now,
+            trial_already_claimed=trial_already_claimed,
         )
         db.add(user)
         db.commit()

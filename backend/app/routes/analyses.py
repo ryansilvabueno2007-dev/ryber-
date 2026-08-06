@@ -38,8 +38,11 @@ def _check_quota(user: User) -> None:
         return
     if not is_plan_active(user) or not user.plan:
         # Sem assinatura: libera exatamente 1 análise grátis (a vida inteira da conta,
-        # não por mês) antes de exigir plano.
-        if storage.count_all_analyses(user.id) >= 1:
+        # não por mês) antes de exigir plano — 0 se esse e-mail já tinha reclamado o
+        # teste grátis antes (mesmo numa conta já excluída), pra excluir e recriar a
+        # conta não virar um jeito de ganhar testes grátis ilimitados.
+        free_limit = 0 if user.trial_already_claimed else 1
+        if storage.count_all_analyses(user.id) >= free_limit:
             raise HTTPException(402, "Você já usou sua análise grátis. Assine um plano para continuar.")
         return
     quota = PLAN_QUOTAS.get(user.plan)
