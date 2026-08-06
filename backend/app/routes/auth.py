@@ -6,9 +6,10 @@ from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session as DBSession
 
-from app import auth
+from app import auth, email_client
 from app.config import settings
 from app.db import get_db
+from app.db_models import Session as SessionModel
 from app.db_models import User
 from app.rate_limit import limiter
 from app.subscription import is_plan_active
@@ -32,6 +33,15 @@ class GoogleAuthRequest(BaseModel):
     # False no login: não cria conta nova se o e-mail do Google não tiver cadastro,
     # só entra em quem já existe. True no cadastro: cria se não existir.
     create_if_missing: bool = True
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
 
 
 class UserResponse(BaseModel):
@@ -58,6 +68,30 @@ def _to_user_response(user: User) -> UserResponse:
         plan_canceled=user.plan_canceled,
         cpf_cnpj=user.cpf_cnpj,
     )
+
+
+def _password_reset_email_html(name: str | None, reset_link: str) -> str:
+    greeting = f"Oi, {name}!" if name else "Oi!"
+    return f"""
+    <div style="font-family: -apple-system, Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+      <p style="font-size: 16px;">{greeting}</p>
+      <p style="font-size: 15px; line-height: 1.6;">
+        Recebemos um pedido para redefinir a senha da sua conta na Ryber. Clique no botão
+        abaixo para criar uma nova senha:
+      </p>
+      <p style="text-align: center; margin: 32px 0;">
+        <a href="{reset_link}"
+           style="background: #5b46d6; color: #fff; padding: 12px 28px; border-radius: 999px;
+                  text-decoration: none; font-weight: 600; font-size: 15px; display: inline-block;">
+          Redefinir senha
+        </a>
+      </p>
+      <p style="font-size: 13px; color: #666; line-height: 1.5;">
+        Esse link expira em 1 hora. Se você não pediu essa redefinição, pode ignorar este
+        e-mail — sua senha continua a mesma.
+      </p>
+    </div>
+    """
 
 
 def _set_session_cookie(response: Response, token: str) -> None:
@@ -145,6 +179,46 @@ async def google_auth(
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
     return _to_user_response(user)
+
+
+@router.post("/forgot-password")
+@limiter.limit("5/hour")
+async def forgot_password(
+    request: Request, payload: ForgotPasswordRequest, db: DBSession = Depends(get_db)
+) -> dict:
+    email = payload.email.lower()
+    user = db.query(User).filter(User.email == email).first()
+    # Sempre responde com a mesma mensagem, exista ou não a conta — evita que alguém
+    # descubra quais e-mails têm cadastro na Ryber (enumeração de contas).
+    if user is not None:
+        token = auth.create_password_reset_token(db, user)
+        reset_link = f"{settings.frontend_url}/redefinir-senha?token={token}"
+        email_client.send_email(
+            to=user.email,
+            subject="Redefinir sua senha na Ryber",
+            html=_password_reset_email_html(user.name, reset_link),
+        )
+    return {"status": "ok"}
+
+
+@router.post("/reset-password")
+@limiter.limit("10/hour")
+async def reset_password(
+    request: Request, payload: ResetPasswordRequest, db: DBSession = Depends(get_db)
+) -> dict:
+    if len(payload.password) < 8:
+        raise HTTPException(400, "A senha precisa ter pelo menos 8 caracteres.")
+
+    user = auth.consume_password_reset_token(db, payload.token)
+    if user is None:
+        raise HTTPException(400, "Link inválido ou expirado. Solicite um novo.")
+
+    user.password_hash = auth.hash_password(payload.password)
+    # Derruba todas as sessões ativas — se alguém mais tinha acesso à conta, perde ao
+    # trocar a senha.
+    db.query(SessionModel).filter(SessionModel.user_id == user.id).delete()
+    db.commit()
+    return {"status": "ok"}
 
 
 @router.post("/logout")

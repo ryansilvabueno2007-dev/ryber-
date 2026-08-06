@@ -60,6 +60,12 @@ export function Login() {
             />
           </div>
 
+          <div className="text-right -mt-2">
+            <Link to="/esqueci-senha" className="text-sm text-accent hover:underline">
+              Esqueci minha senha
+            </Link>
+          </div>
+
           {error && <p className="text-danger text-sm text-center">{error}</p>}
 
           <button

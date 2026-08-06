@@ -51,6 +51,24 @@ export async function loginWithGoogle(idToken: string, createIfMissing: boolean)
   return asJson(res)
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  await asJson(res)
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  })
+  await asJson(res)
+}
+
 export async function logout(): Promise<void> {
   await fetch(`${BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' })
 }

@@ -39,6 +39,11 @@ class Settings(BaseSettings):
     # Criado em console.cloud.google.com > APIs e Serviços > Credenciais > Client ID OAuth.
     google_client_id: str = ""
 
+    # E-mail transacional (recuperação de senha etc.) via Resend — resend.com.
+    # Sem a API key, o link de reset só é logado no console (útil em dev local).
+    resend_api_key: str = ""
+    email_from: str = "Ryber <naoresponda@ryber.app>"
+
     # Asaas (cobrança/assinatura) — ambiente controla a base URL da API (sandbox/produção).
     asaas_api_key: str = ""
     asaas_env: str = "sandbox"  # "sandbox" ou "production"

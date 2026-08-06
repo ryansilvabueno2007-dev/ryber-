@@ -62,6 +62,21 @@ class Session(Base):
     user = relationship("User", back_populates="sessions")
 
 
+class PasswordResetToken(Base):
+    """Token de recuperação de senha — só o hash é guardado (nunca o token puro,
+    mesmo padrão de Session), expira em 1h e é de uso único: consumido é marcado
+    com used_at em vez de apagado, pra não permitir reuso do mesmo link."""
+
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(String, primary_key=True, default=_uuid)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+
 class Analysis(Base):
     __tablename__ = "analyses"
 
