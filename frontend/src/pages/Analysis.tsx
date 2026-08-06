@@ -220,6 +220,17 @@ export function Analysis() {
             />
           ) : (
             <div ref={reportRef} className="space-y-6 bg-canvas">
+              <div className="pdf-only pb-5 mb-1 border-b border-line">
+                <div className="flex items-center gap-2 mb-4">
+                  <img src="/logo-mark.png" alt="" className="h-7 w-7" />
+                  <span className="font-semibold tracking-tight text-lg">Ryber</span>
+                </div>
+                <div className="text-2xl font-semibold tracking-tight">Relatório de Análise de Criativo</div>
+                <div className="text-sm text-ink-soft mt-1">
+                  {result.product.name} · {new Date().toLocaleDateString('pt-BR')}
+                </div>
+              </div>
+
               <SectionHeading eyebrow="Diagnóstico de performance" />
               <div className="space-y-4">
                 {result.market_benchmark && <MarketBenchmarkCard benchmark={result.market_benchmark} />}

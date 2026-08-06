@@ -145,6 +145,41 @@ body {
   color: var(--color-ink);
 }
 
+/* Congela transições/animações CSS durante a captura do PDF — sem isso, elementos
+   com transition (ex: o círculo de score, que anima o preenchimento em 0.9s ao
+   carregar) podem ser fotografados a meio da animação, saindo cortados/incompletos
+   no PDF. */
+.pdf-freeze,
+.pdf-freeze * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Só aparece durante a exportação do PDF (cabeçalho/rodapé do relatório) — some da
+   tela normal, já que ali quem cumpre esse papel é o Header do app. */
+.pdf-only {
+  display: none;
+}
+.pdf-light .pdf-only {
+  display: block;
+}
+
+/* No app, os tamanhos de fonte são pensados pra tela/densidade de app. Num PDF pra
+   imprimir/enviar pro cliente, texto pequeno demais passa impressão barata — aumenta
+   só na exportação, sem mexer no tamanho real da interface. */
+.pdf-light .text-\[11px\] {
+  font-size: 13px !important;
+}
+.pdf-light .text-xs {
+  font-size: 13px !important;
+}
+.pdf-light .text-sm {
+  font-size: 15px !important;
+}
+.pdf-light .text-lg {
+  font-size: 20px !important;
+}
+
 @keyframes pulse-soft {
   0%,
   100% {

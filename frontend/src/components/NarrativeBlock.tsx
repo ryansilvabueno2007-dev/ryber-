@@ -12,15 +12,12 @@ export function NarrativeBlock({ narrative, audienceConclusion }: Props) {
       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint mb-3">
         O que a IA acredita
       </div>
-      <p className="text-lg leading-relaxed text-ink">
-        {narrative}
-        {audienceConclusion && (
-          <>
-            {' '}
-            <mark className="bg-accent-soft text-ink rounded px-1">{audienceConclusion}</mark>
-          </>
-        )}
-      </p>
+      <p className="text-lg leading-relaxed text-ink">{narrative}</p>
+      {audienceConclusion && (
+        <div className="mt-4 rounded-xl bg-accent-soft text-ink text-base leading-relaxed px-4 py-3">
+          {audienceConclusion}
+        </div>
+      )}
     </div>
   )
 }
