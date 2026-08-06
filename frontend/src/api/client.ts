@@ -99,6 +99,14 @@ export async function resendVerification(): Promise<void> {
   await asJson(res)
 }
 
+export async function deleteAccount(): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/auth/account`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+  await asJson(res)
+}
+
 export async function logout(): Promise<void> {
   await fetch(`${BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' })
 }

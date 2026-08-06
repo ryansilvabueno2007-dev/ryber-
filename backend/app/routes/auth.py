@@ -7,9 +7,10 @@ from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session as DBSession
 
-from app import auth, email_client
+from app import asaas_client, auth, email_client, storage_r2
 from app.config import settings
 from app.db import get_db
+from app.db_models import Analysis, CancellationFeedback, EmailVerificationToken, Optimization, PasswordResetToken
 from app.db_models import Session as SessionModel
 from app.db_models import User
 from app.rate_limit import limiter
@@ -301,6 +302,42 @@ async def resend_verification(
     if user.email_verified_at is not None:
         raise HTTPException(400, "Esse e-mail já está confirmado.")
     _send_verification_email(db, user)
+    return {"status": "ok"}
+
+
+@router.delete("/account")
+@limiter.limit("3/hour")
+async def delete_account(
+    request: Request, response: Response, db: DBSession = Depends(get_db), user: User = Depends(auth.require_user)
+) -> dict:
+    """Exclusão de conta a pedido do titular (LGPD) — apaga a conta, as análises (e a
+    mídia associada na R2, incluindo a cópia usada como dado de treino), e cancela
+    qualquer assinatura ativa na Asaas antes de tudo, pra não deixar uma cobrança
+    recorrente órfã rodando pra uma conta que não existe mais."""
+    if user.asaas_subscription_id:
+        try:
+            asaas_client.cancel_subscription(user.asaas_subscription_id)
+        except Exception:  # noqa: BLE001
+            pass  # já capturado pelo Sentry — não pode travar a exclusão por isso
+
+    analyses = db.query(Analysis).filter(Analysis.user_id == user.id).all()
+    for analysis in analyses:
+        try:
+            storage_r2.delete_prefix(f"uploads/{analysis.id}")
+            storage_r2.delete_prefix(f"raw/{analysis.id}/")
+        except Exception:  # noqa: BLE001
+            pass
+
+    db.query(Optimization).filter(Optimization.user_id == user.id).delete()
+    db.query(Analysis).filter(Analysis.user_id == user.id).delete()
+    db.query(CancellationFeedback).filter(CancellationFeedback.user_id == user.id).delete()
+    db.query(PasswordResetToken).filter(PasswordResetToken.user_id == user.id).delete()
+    db.query(EmailVerificationToken).filter(EmailVerificationToken.user_id == user.id).delete()
+    db.query(SessionModel).filter(SessionModel.user_id == user.id).delete()
+    db.delete(user)
+    db.commit()
+
+    response.delete_cookie(settings.session_cookie_name, path="/")
     return {"status": "ok"}
 
 

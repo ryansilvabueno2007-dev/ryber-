@@ -60,6 +60,16 @@ def download_bytes(key: str) -> bytes:
     return obj["Body"].read()
 
 
+def delete_prefix(prefix: str) -> None:
+    """Apaga todos os objetos sob um prefixo (ex: "raw/{analysis_id}/", que tem vários
+    frames + transcript.json) — usado na exclusão de conta, pra não deixar rastro de
+    conteúdo do usuário na R2 depois que a conta e a análise já foram apagadas."""
+    keys = list_keys_by_prefix(prefix, max_keys=1000)
+    if not keys:
+        return
+    _client().delete_objects(Bucket=settings.r2_bucket, Delete={"Objects": [{"Key": k} for k in keys]})
+
+
 def presigned_url(key: str, expires: int = 3600) -> str:
     return _client().generate_presigned_url(
         "get_object", Params={"Bucket": settings.r2_bucket, "Key": key}, ExpiresIn=expires

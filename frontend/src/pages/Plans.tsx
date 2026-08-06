@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Header } from '../components/Header'
 import { PlanCard } from '../components/PlanCard'
 import { CancelSubscriptionModal } from '../components/CancelSubscriptionModal'
+import { DeleteAccountModal } from '../components/DeleteAccountModal'
 import { useAuth } from '../context/AuthContext'
 import { PLANS, PLAN_FEATURES } from '../data/plans'
 
@@ -50,7 +51,9 @@ function TrustIcon() {
 
 export function Plans() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [canceledUntil, setCanceledUntil] = useState<string | null>(null)
 
   const justCanceled = canceledUntil !== null
@@ -146,6 +149,26 @@ export function Plans() {
             <Link to="/termos" className="text-accent hover:underline">Política de Cancelamento e Reembolso</Link>.
           </p>
         </div>
+
+        {/* Zona de risco */}
+        {user && (
+          <div className="max-w-2xl mx-auto mt-16 pt-8 border-t border-line text-center">
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="text-xs text-ink-faint hover:text-danger underline underline-offset-2 transition-colors"
+            >
+              Excluir minha conta permanentemente
+            </button>
+          </div>
+        )}
+
+        {showDeleteModal && (
+          <DeleteAccountModal
+            onClose={() => setShowDeleteModal(false)}
+            onDeleted={() => navigate('/')}
+          />
+        )}
       </div>
     </div>
   )
