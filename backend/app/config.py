@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     # E-mail transacional (recuperação de senha etc.) via Resend — resend.com.
     # Sem a API key, o link de reset só é logado no console (útil em dev local).
     resend_api_key: str = ""
-    email_from: str = "Ryber <naoresponda@ryber.app>"
+    email_from: str = "Ryber <naoresponda@ryber.com.br>"
 
     # Asaas (cobrança/assinatura) — ambiente controla a base URL da API (sandbox/produção).
     asaas_api_key: str = ""
