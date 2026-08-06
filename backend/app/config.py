@@ -61,5 +61,9 @@ class Settings(BaseSettings):
     # Fila de processamento (RQ + Redis do Upstash em produção).
     redis_url: str = "redis://localhost:6379/0"
 
+    # Monitoramento de erro (Sentry) — sentry.io. Sem DSN configurada, não inicializa
+    # nada (dev local não precisa de conta no Sentry pra rodar).
+    sentry_dsn: str = ""
+
 
 settings = Settings()

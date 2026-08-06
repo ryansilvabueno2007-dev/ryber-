@@ -1,3 +1,4 @@
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -14,6 +15,11 @@ from app.routes.auth import router as auth_router
 from app.routes.billing import router as billing_router
 from app.routes.optimize import router as optimize_router
 from app.routes.stats import router as stats_router
+
+# Sem SENTRY_DSN configurada (dev local), não inicializa nada — captura erros não
+# tratados automaticamente em produção, sem precisar instrumentar rota por rota.
+if settings.sentry_dsn:
+    sentry_sdk.init(dsn=settings.sentry_dsn, traces_sample_rate=0.1, send_default_pii=False)
 
 app = FastAPI(title="Ryber API")
 
