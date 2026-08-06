@@ -60,7 +60,9 @@ export function Privacy() {
             <li>
               <strong className="text-ink">Conteúdo enviado por você:</strong> os vídeos, imagens e briefings
               de texto que você envia para análise, junto com os resultados gerados (leitura de público,
-              performance prevista, roteiros de edição, etc.).
+              performance prevista, roteiros de edição, etc.). Também guardamos os frames extraídos e a
+              transcrição de cada análise, usados para aprimorar a precisão e a qualidade das análises da
+              Ryber ao longo do tempo, o que gera respostas mais precisas e de melhor qualidade.
             </li>
             <li>
               <strong className="text-ink">Dados de uso:</strong> histórico de análises, plano de assinatura,
