@@ -525,7 +525,7 @@ def analyze_creative(
     message = _client().messages.create(
         model=settings.anthropic_model,
         max_tokens=12000,
-        system=SYSTEM_PROMPT,
+        system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
         tools=[ANALYSIS_TOOL],
         tool_choice={"type": "tool", "name": "submit_creative_analysis"},
         messages=[{"role": "user", "content": content}],
@@ -574,7 +574,7 @@ def compare_with_briefing(
     message = _client().messages.create(
         model=settings.anthropic_model,
         max_tokens=12000,
-        system=SYSTEM_PROMPT,
+        system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
         tools=[BRIEFING_TOOL],
         tool_choice={"type": "tool", "name": "submit_briefing_compatibility"},
         messages=[{"role": "user", "content": content}],

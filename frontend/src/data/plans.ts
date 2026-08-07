@@ -6,11 +6,11 @@ export interface Plan {
 }
 
 export const PLANS: Plan[] = [
-  { id: 'start', name: 'Ryber Start', price: 59.9, quota: '10 análises profissionais de criativos por mês' },
-  { id: 'gold', name: 'Ryber Gold', price: 179.9, quota: '30 análises profissionais de criativos por mês' },
-  { id: 'platinum', name: 'Ryber Platinum', price: 349.9, quota: '60 análises profissionais de criativos por mês' },
-  { id: 'titanium', name: 'Ryber Titanium', price: 569.9, quota: '100 análises profissionais de criativos por mês' },
-  { id: 'infinity', name: 'Ryber Infinity', price: 1499.9, quota: '300 análises profissionais de criativos por mês' },
+  { id: 'start', name: 'Ryber Start', price: 69.9, quota: '10 análises profissionais de criativos por mês' },
+  { id: 'gold', name: 'Ryber Gold', price: 189.9, quota: '30 análises profissionais de criativos por mês' },
+  { id: 'platinum', name: 'Ryber Platinum', price: 379.9, quota: '60 análises profissionais de criativos por mês' },
+  { id: 'titanium', name: 'Ryber Titanium', price: 629.9, quota: '100 análises profissionais de criativos por mês' },
+  { id: 'infinity', name: 'Ryber Infinity', price: 1599.9, quota: '300 análises profissionais de criativos por mês' },
 ]
 
 export const PLAN_FEATURES = [

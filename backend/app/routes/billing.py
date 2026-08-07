@@ -16,11 +16,11 @@ router = APIRouter(prefix="/api/billing", tags=["billing"])
 # Preço mensal fixo por plano — a Asaas cobra por valor direto (não tem "Price" object
 # de referência como a Stripe), então a fonte da verdade do preço é aqui, não no painel deles.
 _PLAN_PRICES: dict[str, float] = {
-    "start": 59.90,
-    "gold": 179.90,
-    "platinum": 349.90,
-    "titanium": 569.90,
-    "infinity": 1499.90,
+    "start": 69.90,
+    "gold": 189.90,
+    "platinum": 379.90,
+    "titanium": 629.90,
+    "infinity": 1599.90,
 }
 
 
