@@ -126,18 +126,46 @@ Regras fundamentais:
   Pra cada uma, preencha "nivel" ("otimo", "bom" ou "fraco") refletindo a força real da evidência encontrada,
   e um "note" curto (1-2 frases), específico e concreto, citando evidência real do criativo — nunca
   genérico. Guia do que avaliar em cada métrica:
-  - Hook Rate: os primeiros 2-3 segundos (ou o primeiro impacto visual, se for imagem) prendem atenção de
-    verdade, ou começam devagar/genéricos (logo parado, introdução lenta, texto de abertura sem força)?
-  - Hold Rate: usando a timeline, o conteúdo muda e evolui o suficiente pra segurar atenção até o fim, ou
-    fica repetitivo/estático (mesmo plano por muito tempo, nada de novo acontecendo)?
-  - CTR: o hook e o hold somados geram curiosidade/clique suficiente, ou a peça é fraca demais pra parar
-    o scroll?
-  - CPC: a proposta de valor fica clara rápido? Existe uma chamada para ação (CTA) clara e visível?
-  - CPM: a peça tem qualidade técnica (iluminação, nitidez, áudio limpo) e relevância de conteúdo que
-    plataformas recompensam com CPM mais baixo, ou parece amadora/genérica?
-  - CPA: o produto é demonstrado de verdade (não só citado)? Existe prova social, urgência, ou removedor
-    de objeção (garantia, preço, frete)?
-  - ROAS: considerando tudo isso junto, o criativo parece capaz de gerar retorno acima do que custa rodar?
+  - Hook Rate (primeiros 2-3 segundos, ou impacto visual imediato se for imagem): o primeiro frame
+    interrompe o scroll com impacto visual real? o elemento principal/produto aparece de imediato? existe
+    quebra de padrão (algo inesperado, não parece anúncio tradicional)? a promessa/benefício fica clara e
+    desperta curiosidade genuína? existe presença humana ou emoção logo no início? o ritmo é dinâmico ou
+    começa devagar? esse hook pararia um usuário frio, sem contexto, mesmo sem áudio?
+  - Hold Rate (usando a timeline completa): existe progressão clara (começo/desenvolvimento/conclusão), ou
+    fica repetitivo/estático (mesmo plano parado por muito tempo)? existe curiosidade crescente (perguntas
+    na mente do espectador, antecipação do que vem a seguir)? o produto/benefício aparece nos momentos
+    certos, com demonstração real, não só citado? o ritmo de cortes combina com a plataforma, sem partes
+    paradas? texto na tela e áudio reforçam a mensagem (legível, sincronizado, funciona mesmo sem som)?
+    existe conexão emocional ao longo do vídeo, não só no início? o final mantém força até o último segundo
+    e entrega a promessa inicial? em qual trecho a atenção provavelmente mais cai?
+  - CTR: a mensagem principal e o benefício ficam claros rapidamente, sem ambiguidade? existe desejo/
+    curiosidade real gerado (não só atenção passiva) que motive saber mais? a oferta percebida (quando
+    existe) é clara e vantajosa o suficiente pra justificar o clique? existe coerência entre a promessa do
+    criativo e o que a pessoa encontraria ao clicar (evita gerar clique de baixa qualidade)? os elementos
+    visuais reforçam o interesse e diferenciam o anúncio no feed? a mensagem fala com uma pessoa/dor
+    específica, ou é genérica demais?
+  - CPC: o criativo se destaca o suficiente pra interromper o consumo, sem parecer comum? a mensagem atrai
+    o público certo (filtra curiosos sem intenção) ou pode gerar clique de baixa qualidade? existe
+    alinhamento entre a expectativa criada e o que a pessoa encontraria (reduz clique desqualificado)? hook
+    forte, oferta atraente e prova/demonstração presentes — elementos que historicamente reduzem custo por
+    clique?
+  - CPM: o criativo tem qualidade técnica (imagem/vídeo, composição, produção, áudio limpo) que plataformas
+    tendem a recompensar com CPM mais baixo? o formato/duração/enquadramento é nativo da plataforma (funciona
+    bem em mobile, sem áudio)? o conteúdo parece relevante e bem recebido pelo público, ou tem risco de
+    rejeição? o criativo tem apelo amplo o suficiente pra escalar sem saturar rápido, ou depende de um
+    público muito nichado?
+  - CPA (inclui a força do CTA — chamada para ação — como parte da avaliação): o CTA está presente, claro,
+    no momento certo (nem cedo nem tarde demais), com o próximo passo óbvio? existe uma dor real identificada
+    e uma solução clara conectando o produto a essa dor? existe prova social, demonstração real ou removedor
+    de objeção (garantia, preço, frete) que reduza a fricção da decisão? a oferta é clara o suficiente (o que
+    a pessoa recebe, por que agora)? o criativo constrói confiança/credibilidade (transparência, autenticidade,
+    sem exagero)? o público atraído parece ter intenção real de compra, ou é majoritariamente curiosidade?
+    o criativo trabalha argumento emocional e racional pra decisão de compra? qual objeção principal ainda
+    não foi respondida?
+  - ROAS: não tem perguntas próprias — é o cruzamento do que já foi avaliado nas 6 métricas acima (capacidade
+    de parar o usuário, manter atenção, gerar interesse, eficiência do clique, distribuição, e transformar
+    interesse em compra). Considerando tudo isso junto, o criativo parece capaz de gerar retorno acima do
+    que custa rodar?
   Ao avaliar CPC/CPA/ROAS, preste atenção especial a SINAIS COMERCIAIS REAIS já presentes no criativo — na
   fala, na legenda ou em texto na tela — como menção a preço/desconto, "lançamento"/novidade ("mais um
   lançamento", "chegou", "é novo"), urgência (tempo limitado, últimas unidades), garantia, frete grátis, ou
