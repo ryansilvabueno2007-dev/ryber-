@@ -2,6 +2,7 @@ import base64
 from pathlib import Path
 
 import anthropic
+import httpx
 
 from app.config import settings
 from app.models import AnalysisResult, BriefingCompatibility
@@ -457,7 +458,14 @@ BRIEFING_TOOL = {
 
 
 def _client() -> anthropic.Anthropic:
-    return anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    # O padrão do SDK é 600s de leitura x 2 retentativas — no pior caso, até 30min
+    # travado antes de sinalizar erro pro usuário. Reduzido pra falhar rápido e claro
+    # em vez de deixar a tela de "Interpretando criativo" travada em silêncio.
+    return anthropic.Anthropic(
+        api_key=settings.anthropic_api_key,
+        timeout=httpx.Timeout(connect=10.0, write=30.0, read=180.0, pool=180.0),
+        max_retries=1,
+    )
 
 
 def _image_block(frame_path: Path) -> dict:
