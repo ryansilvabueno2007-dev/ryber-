@@ -1,4 +1,4 @@
-import type { PerformanceMetricNote } from '../types'
+import type { ObjectiveFitLevel, PerformanceMetricNote } from '../types'
 import { ScoreGauge } from './ScoreGauge'
 
 interface Props {
@@ -6,6 +6,18 @@ interface Props {
   reasoning: string
   breakdown: PerformanceMetricNote[]
   improvements: string[]
+}
+
+const LEVEL_LABEL: Record<ObjectiveFitLevel, string> = {
+  otimo: 'Ótimo',
+  bom: 'Bom',
+  fraco: 'Fraco',
+}
+
+const LEVEL_STYLE: Record<ObjectiveFitLevel, string> = {
+  otimo: 'bg-success-soft text-success border-success/25',
+  bom: 'bg-panel-raised text-ink border-line',
+  fraco: 'bg-danger-soft text-danger border-danger/25',
 }
 
 function bandFor(pct: number): { label: string; text: string; bg: string; line: string; ring: string } {
@@ -18,12 +30,17 @@ function bandFor(pct: number): { label: string; text: string; bg: string; line: 
   return { label: 'Baixo potencial', text: 'text-danger', bg: 'bg-danger-soft', line: 'border-danger/25', ring: 'var(--color-danger)' }
 }
 
-function MetricRow({ metric, meaning, note }: PerformanceMetricNote) {
+function MetricRow({ metric, meaning, level, note }: PerformanceMetricNote) {
   return (
     <div className="py-3.5 first:pt-0 last:pb-0">
-      <div className="flex items-baseline gap-2 mb-1">
-        <span className="text-sm font-semibold text-ink">{metric}</span>
-        <span className="text-xs text-ink-faint">({meaning})</span>
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="flex items-baseline gap-2">
+          <span className="text-sm font-semibold text-ink">{metric}</span>
+          <span className="text-xs text-ink-faint">({meaning})</span>
+        </div>
+        <span className={`rounded-full border text-xs font-medium px-2.5 py-0.5 shrink-0 ${LEVEL_STYLE[level]}`}>
+          {LEVEL_LABEL[level]}
+        </span>
       </div>
       <p className="text-sm text-ink-soft leading-relaxed">{note}</p>
     </div>

@@ -36,6 +36,7 @@ class BriefingCompatibility(BaseModel):
 class PerformanceMetricNote(BaseModel):
     metric: str
     meaning: str
+    level: Literal["otimo", "bom", "fraco"] = "bom"
     note: str
 
 

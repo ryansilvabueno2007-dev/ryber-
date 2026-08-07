@@ -105,27 +105,17 @@ Regras fundamentais:
     engraçado e ainda comunicar o produto com clareza; um vídeo sério pode performar mal se for chato e
     genérico. O que importa é a EXECUÇÃO do estilo escolhido, não o estilo em si. Isso deve alimentar
     diretamente o performance_score e o performance_reasoning abaixo.
-- Todo criativo (vídeo ou imagem, com ou sem briefing) também precisa de um "performance_score" (0 a 1) —
-  uma nota FRIA e objetiva da probabilidade desse criativo performar bem em plataformas de tráfego pago
-  (Meta Ads, TikTok Ads, Google Ads), CONSIDERANDO o "market_benchmark" acima — o mesmo criativo pode ser
-  ótimo pra um nicho e ruim pra outro, avalie pro nicho identificado, não de forma universal. Essa nota
-  deve refletir fielmente a evidência concreta encontrada no criativo — NUNCA dê uma nota "segura"/mediana
-  só para evitar errar, e NUNCA repita uma nota anterior por padrão: se o criativo tem falhas reais e
-  visíveis (sem hook, sem demonstração, CTA fraco ou ausente, baixa qualidade técnica, ou formato que não
-  combina com o nicho), a nota deve ser baixa de verdade; se cumpre os critérios com força e combina com o
-  que funciona nesse nicho, a nota deve ser alta de verdade.
-- Ao calcular o performance_score e o performance_breakdown (especialmente CPC, CPA e ROAS), preste atenção
-  especial a SINAIS COMERCIAIS REAIS já presentes no criativo — na fala, na legenda ou em texto na tela —
-  como menção a preço/desconto, "lançamento"/novidade ("mais um lançamento", "chegou", "é novo"), urgência
-  (tempo limitado, últimas unidades), garantia, frete grátis, ou prova social explícita. Esses sinais são
-  drivers concretos e reais de conversão — plataformas de tráfego pago também os capturam via áudio/OCR e
-  eles influenciam a decisão de compra do espectador independente da sofisticação da produção. Quando
-  estiverem CLARAMENTE presentes no criativo, eles devem elevar a nota correspondente de verdade (não são
-  apenas sugestões de melhoria pra quando estão ausentes — quando já existem, são evidência a favor).
-- Preencha "performance_reasoning" com APENAS 1 frase curta de conclusão geral (não repita os detalhes que
-  já vão em "performance_breakdown" abaixo).
-- Preencha "performance_breakdown" com uma lista de EXATAMENTE estas 7 métricas, sempre nesta ordem e sempre
-  com estes valores exatos de "metric" e "meaning" (a tradução ajuda quem não conhece o termo em inglês):
+- Preencha o "performance_breakdown" — 7 métricas de tráfego pago (Hook Rate, Hold Rate, CTR, CPC, CPM, CPA,
+  ROAS) — cada uma avaliada de forma TOTALMENTE INDEPENDENTE das outras, simulando como o algoritmo de
+  segmentação/distribuição da plataforma leria especificamente esse aspecto do criativo E como a pessoa real
+  do público já identificado (audience) reagiria especificamente a esse ponto.
+  ATENÇÃO — NÃO avalie isso como um funil onde uma métrica contamina a próxima: o nível de uma métrica NUNCA
+  deve ser copiado ou rebaixado só porque a métrica anterior saiu fraca. É perfeitamente normal (e comum) o
+  Hook ser fraco e o CPA ser bom, ou o contrário — cada métrica reflete um aspecto diferente e real do
+  criativo, e a evidência de uma não determina a nota da outra. Julgue cada uma das 7 isoladamente, só pela
+  evidência concreta que ELA especificamente mostra. Preencha, pra CADA UMA das 7 métricas, sempre nesta
+  ordem e com estes valores exatos de "metric" e "meaning" (a tradução ajuda quem não conhece o termo em
+  inglês):
     1. metric="Hook Rate", meaning="retenção nos primeiros segundos"
     2. metric="Hold Rate", meaning="retenção ao longo do vídeo"
     3. metric="CTR", meaning="taxa de cliques"
@@ -133,8 +123,9 @@ Regras fundamentais:
     5. metric="CPM", meaning="custo por mil impressões"
     6. metric="CPA", meaning="custo por aquisição/conversão"
     7. metric="ROAS", meaning="retorno sobre o investimento em anúncios"
-  Para cada uma, escreva um "note" curto (1-2 frases), específico e concreto, citando evidência real do
-  criativo — nunca genérico. Guia do que avaliar em cada métrica:
+  Pra cada uma, preencha "nivel" ("otimo", "bom" ou "fraco") refletindo a força real da evidência encontrada,
+  e um "note" curto (1-2 frases), específico e concreto, citando evidência real do criativo — nunca
+  genérico. Guia do que avaliar em cada métrica:
   - Hook Rate: os primeiros 2-3 segundos (ou o primeiro impacto visual, se for imagem) prendem atenção de
     verdade, ou começam devagar/genéricos (logo parado, introdução lenta, texto de abertura sem força)?
   - Hold Rate: usando a timeline, o conteúdo muda e evolui o suficiente pra segurar atenção até o fim, ou
@@ -147,6 +138,30 @@ Regras fundamentais:
   - CPA: o produto é demonstrado de verdade (não só citado)? Existe prova social, urgência, ou removedor
     de objeção (garantia, preço, frete)?
   - ROAS: considerando tudo isso junto, o criativo parece capaz de gerar retorno acima do que custa rodar?
+  Ao avaliar CPC/CPA/ROAS, preste atenção especial a SINAIS COMERCIAIS REAIS já presentes no criativo — na
+  fala, na legenda ou em texto na tela — como menção a preço/desconto, "lançamento"/novidade ("mais um
+  lançamento", "chegou", "é novo"), urgência (tempo limitado, últimas unidades), garantia, frete grátis, ou
+  prova social explícita. Esses sinais são drivers concretos e reais de conversão — plataformas de tráfego
+  pago também os capturam via áudio/OCR e eles influenciam a decisão de compra do espectador independente da
+  sofisticação da produção. Quando estiverem CLARAMENTE presentes, eles devem elevar o nível correspondente
+  de verdade (não são apenas sugestões de melhoria pra quando estão ausentes — quando já existem, são
+  evidência a favor).
+- SÓ DEPOIS de avaliar as 7 etapas acima, preencha o "performance_score" (0 a 1) — a nota GERAL, fria e
+  objetiva, da probabilidade desse criativo performar bem em plataformas de tráfego pago (Meta Ads, TikTok
+  Ads, Google Ads), CONSIDERANDO o "market_benchmark" já identificado — o mesmo criativo pode ser ótimo pra
+  um nicho e ruim pra outro, avalie pro nicho identificado, não de forma universal.
+  IMPORTANTE: essa nota NÃO é uma média mecânica nem uma contagem dos níveis das 7 métricas acima (não é
+  "tantos ótimos + tantos bons + tantos fracos = tal número") — é um julgamento HOLÍSTICO de como o CONJUNTO
+  INTEIRO da obra se comporta numa simulação completa e sequencial do funil real, pensando exatamente como a
+  IA da plataforma de divulgação processaria esse criativo E como o público real segmentado reagiria em cada
+  etapa, do primeiro segundo até a decisão de conversão — avalie tudo, todas as etapas, antes de decidir o
+  número final. Essa nota deve refletir fielmente a evidência concreta encontrada — NUNCA dê uma nota
+  "segura"/mediana só para evitar errar, e NUNCA repita uma nota anterior por padrão: uma única etapa muito
+  fraca pode derrubar a nota mesmo com as outras boas, porque ela trava o fluxo pras etapas seguintes (de
+  nada adianta um CPA ótimo se o Hook já perdeu a maior parte da audiência); se o criativo cumpre as etapas
+  com força e combina com o que funciona nesse nicho, a nota deve ser alta de verdade.
+- Preencha "performance_reasoning" com APENAS 1 frase curta de conclusão geral (não repita os detalhes que
+  já foram pro "performance_breakdown" acima).
 - Junto do performance_score (que é uma nota GERAL, cross-objetivo — não é sobre venda especificamente),
   preencha "performance_improvements": ações UNIVERSAIS de qualidade técnica/produção que ajudam o criativo
   independente de qual objetivo de campanha for usado (ex: "melhorar a iluminação da cena X", "estabilizar
@@ -263,27 +278,37 @@ ANALYSIS_TOOL = {
                 "required": ["niche", "style", "what_works", "fit_assessment"],
                 "additionalProperties": False,
             },
-            "performance_score": {
-                "type": "number",
-                "description": "Nota fria de 0 a 1 da probabilidade do criativo performar bem em tráfego pago, considerando o nicho.",
-            },
-            "performance_reasoning": {
-                "type": "string",
-                "description": "Conclusão geral em 1 frase curta (o detalhamento vai em performance_breakdown).",
-            },
             "performance_breakdown": {
                 "type": "array",
-                "description": "Exatamente 7 itens, um por métrica, sempre na ordem: Hook Rate, Hold Rate, CTR, CPC, CPM, CPA, ROAS.",
+                "description": (
+                    "Exatamente 7 itens, um por métrica, sempre na ordem: Hook Rate, Hold Rate, CTR, CPC, "
+                    "CPM, CPA, ROAS. Preencha ANTES do performance_score — é a simulação etapa-por-etapa do "
+                    "funil que fundamenta a nota geral."
+                ),
                 "items": {
                     "type": "object",
                     "properties": {
                         "metric": {"type": "string"},
                         "meaning": {"type": "string", "description": "Tradução/explicação curta em português."},
+                        "level": {"type": "string", "enum": ["otimo", "bom", "fraco"]},
                         "note": {"type": "string", "description": "Achado específico e concreto desse criativo."},
                     },
-                    "required": ["metric", "meaning", "note"],
+                    "required": ["metric", "meaning", "level", "note"],
                     "additionalProperties": False,
                 },
+            },
+            "performance_score": {
+                "type": "number",
+                "description": (
+                    "Nota fria de 0 a 1 da probabilidade do criativo performar bem em tráfego pago, "
+                    "considerando o nicho. Julgamento holístico da simulação completa do funil "
+                    "(performance_breakdown acima) — NÃO é uma média/contagem mecânica dos níveis das 7 "
+                    "métricas."
+                ),
+            },
+            "performance_reasoning": {
+                "type": "string",
+                "description": "Conclusão geral em 1 frase curta (o detalhamento já foi pro performance_breakdown).",
             },
             "performance_improvements": {
                 "type": "array",
@@ -346,9 +371,9 @@ ANALYSIS_TOOL = {
             "narrative",
             "audience_conclusion",
             "market_benchmark",
+            "performance_breakdown",
             "performance_score",
             "performance_reasoning",
-            "performance_breakdown",
             "performance_improvements",
             "objective_fit",
             "recommended_objective",

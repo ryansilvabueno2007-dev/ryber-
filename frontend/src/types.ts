@@ -33,6 +33,7 @@ export interface BriefingCompatibility {
 export interface PerformanceMetricNote {
   metric: string
   meaning: string
+  level: ObjectiveFitLevel
   note: string
 }
 
