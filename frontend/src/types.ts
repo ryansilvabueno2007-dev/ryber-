@@ -107,6 +107,13 @@ export interface ScoreTrendPoint {
   score: number
 }
 
+export interface NicheBenchmarkData {
+  niche: string
+  your_score: number
+  average_score: number
+  sample_size: number
+}
+
 export interface DashboardStats {
   name: string | null
   plan: string | null

@@ -149,6 +149,13 @@ class ScoreTrendPoint(BaseModel):
     score: float
 
 
+class NicheBenchmark(BaseModel):
+    niche: str
+    your_score: float
+    average_score: float
+    sample_size: int
+
+
 class DashboardStats(BaseModel):
     name: Optional[str] = None
     plan: Optional[str] = None

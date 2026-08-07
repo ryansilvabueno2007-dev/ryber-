@@ -7,6 +7,7 @@ import type {
   ComparisonResponse,
   CurrentUser,
   DashboardStats,
+  NicheBenchmarkData,
   OptimizationObjective,
   OptimizationStatus,
 } from '../types'
@@ -147,6 +148,12 @@ export async function listAnalyses(): Promise<AnalysisSummary[]> {
 
 export async function getStats(): Promise<DashboardStats> {
   const res = await fetch(`${BASE_URL}/api/stats`, { credentials: 'include' })
+  return asJson(res)
+}
+
+export async function getNicheBenchmark(niche: string, score: number): Promise<NicheBenchmarkData | null> {
+  const params = new URLSearchParams({ niche, score: String(score) })
+  const res = await fetch(`${BASE_URL}/api/niche-benchmark?${params}`, { credentials: 'include' })
   return asJson(res)
 }
 

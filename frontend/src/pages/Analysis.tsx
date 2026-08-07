@@ -19,6 +19,8 @@ import { AlertsList } from '../components/AlertsList'
 import { NarrativeBlock } from '../components/NarrativeBlock'
 import { BriefingCompat } from '../components/BriefingCompat'
 import { PerformanceScore } from '../components/PerformanceScore'
+import { BottleneckCallout } from '../components/BottleneckCallout'
+import { NicheBenchmark } from '../components/NicheBenchmark'
 import { MarketBenchmarkCard } from '../components/MarketBenchmarkCard'
 import { ObjectiveFitCard } from '../components/ObjectiveFitCard'
 import { OptimizeVideoCard } from '../components/OptimizeVideoCard'
@@ -233,6 +235,9 @@ export function Analysis() {
 
               <SectionHeading eyebrow="Diagnóstico de performance" />
               <div className="space-y-4">
+                {result.performance_breakdown.length > 0 && (
+                  <BottleneckCallout breakdown={result.performance_breakdown} />
+                )}
                 {result.market_benchmark && <MarketBenchmarkCard benchmark={result.market_benchmark} />}
                 <PerformanceScore
                   score={result.performance_score}
@@ -266,6 +271,10 @@ export function Analysis() {
                   <SectionHeading eyebrow="Briefing" />
                   <BriefingCompat compat={result.briefing_compatibility} />
                 </>
+              )}
+
+              {result.market_benchmark && (
+                <NicheBenchmark niche={result.market_benchmark.niche} score={result.performance_score} />
               )}
             </div>
           )}

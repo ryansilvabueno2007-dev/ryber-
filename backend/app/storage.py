@@ -294,6 +294,37 @@ def list_optimizations_for_analysis(analysis_id: str, user_id: str) -> list[Opti
         return rows
 
 
+NICHE_BENCHMARK_MIN_SAMPLE = 10
+
+
+def get_niche_benchmark(niche: str, min_sample: int = NICHE_BENCHMARK_MIN_SAMPLE) -> dict | None:
+    """Média real de performance_score entre TODAS as análises já feitas na Ryber pro
+    mesmo nicho (correspondência exata do texto gerado pela IA) — não é pesquisa de
+    mercado externa, é dado real da própria base. Retorna None se a amostra for
+    pequena demais pra significar algo (evita mostrar "média" calculada em cima de
+    1-2 análises)."""
+    with SessionLocal() as db:
+        rows = (
+            db.query(Analysis.result_json)
+            .filter(Analysis.result_json.isnot(None))
+            .all()
+        )
+        scores = []
+        for (result_json,) in rows:
+            row_niche = (result_json.get("market_benchmark") or {}).get("niche")
+            score = result_json.get("performance_score")
+            if row_niche == niche and isinstance(score, (int, float)):
+                scores.append(score)
+
+        if len(scores) < min_sample:
+            return None
+        return {
+            "niche": niche,
+            "average_score": sum(scores) / len(scores),
+            "sample_size": len(scores),
+        }
+
+
 def list_trainable_ids() -> list[str]:
     """IDs que têm tanto o resultado original quanto uma correção humana."""
     with SessionLocal() as db:

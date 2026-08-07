@@ -1,11 +1,11 @@
 from collections import Counter
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app import storage
 from app.auth import require_user
 from app.db_models import User
-from app.models import DashboardStats, ScoreTrendPoint
+from app.models import DashboardStats, NicheBenchmark, ScoreTrendPoint
 from app.routes.analyses import PLAN_QUOTAS
 from app.subscription import is_plan_active
 
@@ -110,4 +110,21 @@ async def get_dashboard_stats(user: User = Depends(require_user)) -> DashboardSt
             weakest_ratio,
             scores,
         ),
+    )
+
+
+@router.get("/niche-benchmark", response_model=NicheBenchmark | None)
+async def get_niche_benchmark(
+    niche: str = Query(...),
+    score: float = Query(...),
+    user: User = Depends(require_user),
+) -> NicheBenchmark | None:
+    benchmark = storage.get_niche_benchmark(niche)
+    if benchmark is None:
+        return None
+    return NicheBenchmark(
+        niche=benchmark["niche"],
+        your_score=score,
+        average_score=benchmark["average_score"],
+        sample_size=benchmark["sample_size"],
     )
