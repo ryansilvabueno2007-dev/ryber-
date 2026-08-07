@@ -164,14 +164,30 @@ Regras fundamentais:
     4. "Reconhecimento de Marca/Alcance"
     5. "Cadastro/Geração de Leads"
   Para cada um, avalie "fit" ("otimo", "bom" ou "fraco") e escreva um "note" curto e específico explicando
-  por quê, com base em características reais do criativo (ex: um vídeo bem-humorado e envolvente mas sem
-  CTA forte tende a ser "fraco" pra Vendas mas "otimo" pra Engajamento; um vídeo com demonstração clara e
-  CTA direto tende a ser "otimo" pra Vendas). Além disso, preencha "improvements" (dentro de cada objetivo)
-  com ações ESPECÍFICAS PRA AQUELE OBJETIVO — o que fazer se o anunciante quiser usar esse criativo
-  especificamente pra esse fim (ex: pra "Vendas/Conversão": adicionar preço/oferta, CTA visual, prova
-  social, demonstração de uso; pra "Engajamento": adicionar uma pergunta que gere comentários, um gancho
-  polêmico/relacionável; pra "Cadastro/Geração de Leads": adicionar uma oferta de conteúdo gratuito ou
-  formulário; pra "Reconhecimento de Marca": reforçar ainda mais o logo/nome se já não estiver ótimo).
+  por quê, com base em características reais do criativo.
+  IMPORTANTE especificamente pra "Vendas/Conversão": um CTA explícito (botão, "clique no link", "compre
+  agora") é APENAS UM caminho possível de conversão, não o único critério. Antes de julgar o fit, reavalie
+  aqui os MESMOS sinais comerciais reais já considerados pro performance_score (preço/desconto mencionado,
+  "lançamento"/novidade ("mais um lançamento", "chegou", "edição limitada"), urgência, garantia, frete
+  grátis, prova social, demonstração que gera desejo/confiança real no produto) — quando presentes com
+  força, eles são evidência de bom fit pra Vendas/Conversão mesmo SEM CTA explícito na tela, porque já
+  motivam a decisão de compra por conta própria. Um vídeo de lançamento genuíno, por exemplo, carrega
+  urgência e novidade implícitas mesmo sem cronômetro ou texto de urgência visual. Só marque "fraco" se,
+  olhando o conjunto, não há nenhum driver de compra real (nem CTA, nem preço, nem demonstração que gere
+  desejo, nem prova social, nem urgência genuína) — não pela simples ausência de um botão. Um vídeo bem-
+  humorado e envolvente mas sem NENHUM desses drivers tende a ser "fraco" pra Vendas mas "otimo" pra
+  Engajamento.
+  Além disso, preencha "improvements" (dentro de cada objetivo) com ações ESPECÍFICAS PRA AQUELE OBJETIVO —
+  mas só sugira o que REALMENTE falta nesse criativo específico, nunca repita a mesma lista padrão (preço,
+  CTA, urgência, prova social) como checklist fixo sem checar se aquele elemento já está presente de outra
+  forma. Ex. do erro a evitar: um vídeo que já comunica "é lançamento" verbalmente não deveria receber a
+  sugestão genérica "adicione urgência" — isso já existe, só falta reforçar visualmente, o que é uma
+  sugestão diferente e mais específica. Pra "Vendas/Conversão", pense no que genuinamente falta pra esse
+  criativo específico converter melhor (pode ser preço, prova social, reforço visual de algo só dito em
+  áudio, ou nada disso e sim ritmo/edição) — não presuma que preço/CTA/urgência estão sempre ausentes. Pra
+  "Engajamento": adicionar uma pergunta que gere comentários, um gancho polêmico/relacionável; pra
+  "Cadastro/Geração de Leads": adicionar uma oferta de conteúdo gratuito ou formulário; pra "Reconhecimento
+  de Marca": reforçar ainda mais o logo/nome se já não estiver ótimo.
   Deixe "improvements" vazio se "fit" já for "otimo" nesse objetivo. Depois preencha "recommended_objective"
   com uma frase curta dizendo qual desses 5 objetivos esse criativo específico serve melhor, MESMO que não
   seja o objetivo mais comum ou óbvio pro nicho — se o criativo entrega ótimo engajamento mas fraca
