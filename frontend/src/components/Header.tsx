@@ -16,7 +16,7 @@ export function Header({ right }: { right?: ReactNode }) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
         <Link to={user ? '/app' : '/'} className="flex items-center gap-2 shrink-0 group">
           <img src="/logo-mark.png" alt="" className="h-7 w-7 sm:h-8 sm:w-8" />
-          <span className="font-semibold tracking-tight text-ink group-hover:text-accent transition-colors">
+          <span className="font-display font-semibold tracking-tight text-ink group-hover:text-accent transition-colors">
             Ryber
           </span>
         </Link>
@@ -53,7 +53,7 @@ export function Header({ right }: { right?: ReactNode }) {
               {!user.is_subscribed && (
                 <Link
                   to="/planos"
-                  className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-glow hover:bg-accent-strong transition-colors whitespace-nowrap"
+                  className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-glow hover:bg-accent-strong hover:-translate-y-px transition-all whitespace-nowrap"
                 >
                   Assinar
                 </Link>
@@ -75,7 +75,7 @@ export function Header({ right }: { right?: ReactNode }) {
               </Link>
               <Link
                 to="/signup"
-                className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-glow hover:bg-accent-strong transition-colors whitespace-nowrap"
+                className="rounded-full bg-accent text-white px-3 sm:px-4 py-2 text-sm font-medium shadow-glow hover:bg-accent-strong hover:-translate-y-px transition-all whitespace-nowrap"
               >
                 Criar conta
               </Link>

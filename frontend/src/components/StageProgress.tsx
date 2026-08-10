@@ -56,7 +56,7 @@ export function StageProgress({ stage, detail }: { stage: Stage; detail: string 
               </div>
               <div className="h-1 rounded-full bg-line overflow-hidden relative">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-accent to-blue rounded-full"
+                  className="h-full bg-gradient-to-r from-accent to-cyan rounded-full"
                   initial={{ width: '0%' }}
                   animate={{ width: isDone ? '100%' : isActive ? '65%' : '0%' }}
                   transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}

@@ -11,8 +11,9 @@ import {
 } from '../api/client'
 import type { AnalysisResult, AnalysisStatus } from '../types'
 import { Header } from '../components/Header'
-import { SectionHeading } from '../components/SectionHeading'
 import { StageProgress } from '../components/StageProgress'
+import { ScoreGauge } from '../components/ScoreGauge'
+import { MetricRadar } from '../components/MetricRadar'
 import { MediaTimeline } from '../components/MediaTimeline'
 import { ResultCards } from '../components/ResultCards'
 import { AlertsList } from '../components/AlertsList'
@@ -26,6 +27,98 @@ import { ObjectiveFitCard } from '../components/ObjectiveFitCard'
 import { OptimizeVideoCard } from '../components/OptimizeVideoCard'
 import { CorrectionForm } from '../components/CorrectionForm'
 import { exportElementToPdf } from '../lib/exportPdf'
+
+/* ------------------------------------------------------------------ */
+/* Estrutura do relatório: capa de veredito + capítulos numerados      */
+/* ------------------------------------------------------------------ */
+
+function bandFor(pct: number) {
+  if (pct >= 75) return { label: 'Alto potencial', text: 'text-success', bg: 'bg-success-soft', line: 'border-success/25', ring: 'var(--color-success)' }
+  if (pct >= 50) return { label: 'Potencial moderado', text: 'text-warn', bg: 'bg-warn-soft', line: 'border-warn/25', ring: 'var(--color-warn)' }
+  return { label: 'Baixo potencial', text: 'text-danger', bg: 'bg-danger-soft', line: 'border-danger/25', ring: 'var(--color-danger)' }
+}
+
+function ReportCover({ result }: { result: AnalysisResult }) {
+  const pct = Math.round(result.performance_score * 100)
+  const band = bandFor(pct)
+  const chips = [
+    result.category,
+    result.emotion?.name && `Emoção: ${result.emotion.name}`,
+    result.audience?.gender && result.audience?.age_range && `${result.audience.gender} · ${result.audience.age_range}`,
+    result.positioning?.name && `Posicionamento: ${result.positioning.name}`,
+  ].filter(Boolean) as string[]
+
+  return (
+    <div data-pdf-block className="relative rounded-2xl glass shadow-elevated overflow-hidden p-6 sm:p-8">
+      <div className="absolute inset-0 bg-grid opacity-50 pointer-events-none" />
+      <div className="relative flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8">
+        <div className="flex-1 min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent mb-3">
+            Relatório de análise · {new Date().toLocaleDateString('pt-BR')}
+          </div>
+          <h1 className="font-display text-2xl sm:text-[1.75rem] font-bold tracking-tight leading-tight text-ink mb-3">
+            {result.product.name}
+          </h1>
+          <div className="flex flex-wrap gap-1.5">
+            {chips.map((c) => (
+              <span key={c} className="text-xs rounded-full border border-accent-line bg-accent-soft text-accent px-2.5 py-1">
+                {c}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="flex sm:flex-col items-center gap-4 sm:gap-2 shrink-0">
+          <ScoreGauge pct={pct} color={band.ring} size={92} strokeWidth={8} />
+          <span className={`inline-block rounded-full border ${band.line} ${band.bg} ${band.text} text-xs font-medium px-3 py-1 whitespace-nowrap`}>
+            {band.label}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const REPORT_SECTIONS = [
+  { id: 'sec-performance', n: '01', label: 'Performance' },
+  { id: 'sec-leitura', n: '02', label: 'Leitura do criativo' },
+  { id: 'sec-resumo', n: '03', label: 'Resumo e alertas' },
+  { id: 'sec-briefing', n: '04', label: 'Briefing' },
+]
+
+function SectionNav({ hasBriefing }: { hasBriefing: boolean }) {
+  const sections = hasBriefing ? REPORT_SECTIONS : REPORT_SECTIONS.slice(0, 3)
+  return (
+    <nav className="sticky top-16 z-10 -mx-1 px-1 py-2 bg-canvas/85 backdrop-blur-xl">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        {sections.map((s) => (
+          <a
+            key={s.id}
+            href={`#${s.id}`}
+            className="shrink-0 flex items-center gap-1.5 text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line transition-all"
+          >
+            <span className="font-mono text-accent text-[10px]">{s.n}</span>
+            {s.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+  )
+}
+
+function ChapterHeading({ n, title, subtitle }: { n: string; title: string; subtitle: string }) {
+  return (
+    <div className="pt-4 pb-1">
+      <div className="flex items-baseline gap-3 mb-1">
+        <span className="font-display font-bold text-2xl text-gradient">{n}</span>
+        <h2 className="font-display text-lg sm:text-xl font-semibold tracking-tight text-ink">{title}</h2>
+      </div>
+      <div className="flex items-center gap-3">
+        <p className="text-xs text-ink-faint">{subtitle}</p>
+        <span className="h-px flex-1 bg-gradient-to-r from-accent-line to-transparent" />
+      </div>
+    </div>
+  )
+}
 
 export function Analysis() {
   const { id } = useParams<{ id: string }>()
@@ -170,18 +263,18 @@ export function Analysis() {
               <span />
             )}
             {!editing && (
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleExportPdf}
                   disabled={exporting}
-                  className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 decoration-line disabled:opacity-60"
+                  className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all disabled:opacity-60"
                 >
                   {exporting ? 'Gerando PDF...' : 'Exportar PDF'}
                 </button>
                 {hasComparison ? (
                   <Link
                     to={`/analysis/${id}/compare`}
-                    className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 decoration-line"
+                    className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all"
                   >
                     Ver antes/depois
                   </Link>
@@ -197,7 +290,7 @@ export function Analysis() {
                     <button
                       onClick={() => compareInputRef.current?.click()}
                       disabled={uploadingCompare}
-                      className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 decoration-line disabled:opacity-60"
+                      className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all disabled:opacity-60"
                     >
                       {uploadingCompare ? 'Enviando nova versão...' : 'Comparar com nova versão'}
                     </button>
@@ -205,7 +298,7 @@ export function Analysis() {
                 )}
                 <button
                   onClick={() => setEditing(true)}
-                  className="text-sm text-ink-soft hover:text-accent underline underline-offset-2 decoration-line"
+                  className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all"
                 >
                   Corrigir leitura
                 </button>
@@ -221,61 +314,92 @@ export function Analysis() {
               onCancel={() => setEditing(false)}
             />
           ) : (
-            <div ref={reportRef} className="space-y-6 bg-canvas">
-              <div className="pdf-only pb-5 mb-1 border-b border-line">
-                <div className="flex items-center gap-2 mb-4">
-                  <img src="/logo-mark.png" alt="" className="h-7 w-7" />
-                  <span className="font-semibold tracking-tight text-lg">Ryber</span>
-                </div>
-                <div className="text-2xl font-semibold tracking-tight">Relatório de Análise de Criativo</div>
-                <div className="text-sm text-ink-soft mt-1">
-                  {result.product.name} · {new Date().toLocaleDateString('pt-BR')}
-                </div>
-              </div>
+            <div className="space-y-6">
+              <SectionNav hasBriefing={Boolean(result.briefing_compatibility)} />
 
-              <SectionHeading eyebrow="Diagnóstico de performance" />
-              <div className="space-y-4">
-                {result.performance_breakdown.length > 0 && (
-                  <BottleneckCallout breakdown={result.performance_breakdown} />
-                )}
-                {result.market_benchmark && <MarketBenchmarkCard benchmark={result.market_benchmark} />}
-                <PerformanceScore
-                  score={result.performance_score}
-                  reasoning={result.performance_reasoning}
-                  breakdown={result.performance_breakdown}
-                  improvements={result.performance_improvements}
-                />
-                {result.objective_fit.length > 0 && (
-                  <ObjectiveFitCard
-                    objectives={result.objective_fit}
-                    recommended={result.recommended_objective}
+              <div ref={reportRef} className="space-y-6 bg-canvas">
+                <div className="pdf-only pb-5 mb-1 border-b border-line">
+                  <div className="flex items-center gap-2 mb-4">
+                    <img src="/logo-mark.png" alt="" className="h-7 w-7" />
+                    <span className="font-semibold tracking-tight text-lg">Ryber</span>
+                  </div>
+                  <div className="text-2xl font-semibold tracking-tight">Relatório de Análise de Criativo</div>
+                  <div className="text-sm text-ink-soft mt-1">
+                    {result.product.name} · {new Date().toLocaleDateString('pt-BR')}
+                  </div>
+                </div>
+
+                <ReportCover result={result} />
+
+                <section id="sec-performance" className="scroll-mt-32 space-y-4">
+                  <ChapterHeading
+                    n="01"
+                    title="Diagnóstico de performance"
+                    subtitle="Como esse criativo tende a se comportar em tráfego pago, métrica a métrica"
                   />
+                  {result.performance_breakdown.length > 0 && (
+                    <BottleneckCallout breakdown={result.performance_breakdown} />
+                  )}
+                  {result.market_benchmark && <MarketBenchmarkCard benchmark={result.market_benchmark} />}
+                  <div className="grid grid-cols-1 md:grid-cols-[290px_1fr] gap-4 items-start">
+                    {result.performance_breakdown.length > 0 && (
+                      <div className="md:sticky md:top-32 max-w-[340px] md:max-w-none mx-auto md:mx-0 w-full">
+                        <MetricRadar breakdown={result.performance_breakdown} />
+                      </div>
+                    )}
+                    <PerformanceScore
+                      score={result.performance_score}
+                      reasoning={result.performance_reasoning}
+                      breakdown={result.performance_breakdown}
+                      improvements={result.performance_improvements}
+                    />
+                  </div>
+                  {result.objective_fit.length > 0 && (
+                    <ObjectiveFitCard
+                      objectives={result.objective_fit}
+                      recommended={result.recommended_objective}
+                    />
+                  )}
+                  <OptimizeVideoCard analysisId={id} />
+                </section>
+
+                <section id="sec-leitura" className="scroll-mt-32 space-y-4">
+                  <ChapterHeading
+                    n="02"
+                    title="Leitura do criativo"
+                    subtitle="O que o algoritmo de distribuição enxerga no seu anúncio"
+                  />
+                  <ResultCards result={result} />
+                </section>
+
+                <section id="sec-resumo" className="scroll-mt-32 space-y-4">
+                  <ChapterHeading
+                    n="03"
+                    title="Resumo e alertas"
+                    subtitle="Os riscos que derrubam performance e a narrativa completa"
+                  />
+                  <AlertsList alerts={result.alerts} />
+                  <NarrativeBlock
+                    narrative={result.narrative}
+                    audienceConclusion={result.audience_conclusion}
+                  />
+                </section>
+
+                {result.briefing_compatibility && (
+                  <section id="sec-briefing" className="scroll-mt-32 space-y-4">
+                    <ChapterHeading
+                      n="04"
+                      title="Compatibilidade com o briefing"
+                      subtitle="Requisito por requisito, o que foi atendido e o que falta"
+                    />
+                    <BriefingCompat compat={result.briefing_compatibility} />
+                  </section>
                 )}
-                <OptimizeVideoCard analysisId={id} />
+
+                {result.market_benchmark && (
+                  <NicheBenchmark niche={result.market_benchmark.niche} score={result.performance_score} />
+                )}
               </div>
-
-              <SectionHeading eyebrow="Leitura do criativo" />
-              <ResultCards result={result} />
-
-              <SectionHeading eyebrow="Resumo e alertas" />
-              <div className="space-y-4">
-                <AlertsList alerts={result.alerts} />
-                <NarrativeBlock
-                  narrative={result.narrative}
-                  audienceConclusion={result.audience_conclusion}
-                />
-              </div>
-
-              {result.briefing_compatibility && (
-                <>
-                  <SectionHeading eyebrow="Briefing" />
-                  <BriefingCompat compat={result.briefing_compatibility} />
-                </>
-              )}
-
-              {result.market_benchmark && (
-                <NicheBenchmark niche={result.market_benchmark.niche} score={result.performance_score} />
-              )}
             </div>
           )}
         </div>

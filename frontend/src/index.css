@@ -1,29 +1,37 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-display: "Sora", "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
-  /* Superfícies — preto quase puro, neutro (nem quente nem frio) */
-  --color-canvas: #08080a;
-  --color-panel: #0e0e11;
-  --color-panel-raised: #16161a;
-  --color-line: #202024;
+  /* Superfícies — azul-noite profundo (a base da nova identidade: escuro, mas vivo) */
+  --color-canvas: #05070d;
+  --color-panel: #0a0e18;
+  --color-panel-raised: #111726;
+  --color-line: #1b2336;
 
   /* Texto */
-  --color-ink: #f6f6f8;
-  --color-ink-soft: #96969f;
-  --color-ink-faint: #57575f;
+  --color-ink: #eef2fa;
+  --color-ink-soft: #8f9ab0;
+  --color-ink-faint: #545e73;
 
-  /* Roxo da marca — mesma família de hue do #5b46d6 original, calibrado pra
-     ler bem sobre fundo quase preto (lightness maior que a versão pra fundo claro) */
-  --color-accent: #8a7bf5;
-  --color-accent-strong: #a196f8;
-  --color-accent-soft: #191531;
-  --color-accent-line: #322a63;
+  /* Azul elétrico — o novo protagonista da marca */
+  --color-accent: #5b8cff;
+  --color-accent-strong: #85abff;
+  --color-accent-soft: #0e1730;
+  --color-accent-line: #24365e;
 
-  /* Azul — apoio, uso esparso */
+  /* Ciano — energia, usado em gradientes e detalhes luminosos */
+  --color-cyan: #3cd9ff;
+  --color-cyan-soft: #082030;
+
+  /* Violeta — profundidade, usado como cor terciária em luzes e gradientes */
+  --color-violet: #8b7bff;
+  --color-violet-soft: #151238;
+
+  /* Azul de apoio (mantido por compatibilidade com componentes existentes) */
   --color-blue: #5b9df6;
-  --color-blue-soft: #0f1f33;
+  --color-blue-soft: #0d1c30;
 
   --color-warn: #f0b342;
   --color-warn-soft: #241d0c;
@@ -32,10 +40,11 @@
   --color-success: #3ddc9b;
   --color-success-soft: #0e2419;
 
-  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px -18px rgba(0, 0, 0, 0.7);
-  --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 20px 48px -18px rgba(0, 0, 0, 0.8);
-  --shadow-elevated: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 32px 64px -20px rgba(0, 0, 0, 0.85);
-  --shadow-glow: 0 0 0 1px rgba(138, 123, 245, 0.15), 0 0 48px -8px rgba(138, 123, 245, 0.35);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 32px -18px rgba(0, 0, 0, 0.75);
+  --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 20px 48px -18px rgba(3, 10, 28, 0.9);
+  --shadow-elevated: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 32px 64px -20px rgba(2, 6, 20, 0.9);
+  --shadow-glow: 0 0 0 1px rgba(91, 140, 255, 0.18), 0 0 48px -8px rgba(91, 140, 255, 0.4);
+  --shadow-glow-cyan: 0 0 0 1px rgba(60, 217, 255, 0.14), 0 0 42px -10px rgba(60, 217, 255, 0.38);
 }
 
 html,
@@ -44,16 +53,28 @@ body,
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   background:
-    radial-gradient(900px 460px at 12% -8%, rgba(138, 123, 245, 0.12), transparent 60%),
-    radial-gradient(700px 420px at 100% 0%, rgba(91, 157, 246, 0.06), transparent 55%),
+    radial-gradient(1100px 520px at 15% -10%, rgba(91, 140, 255, 0.13), transparent 60%),
+    radial-gradient(900px 480px at 100% 0%, rgba(139, 123, 255, 0.08), transparent 55%),
+    radial-gradient(700px 500px at 50% 110%, rgba(60, 217, 255, 0.05), transparent 60%),
     var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Títulos carregam a personalidade da marca — Sora em todos os headings,
+   sem precisar de classe página por página */
+h1,
+h2 {
+  font-family: var(--font-display);
 }
 
 ::selection {
@@ -92,47 +113,212 @@ body {
   box-shadow: var(--shadow-glow);
 }
 
-/* Painel com leve efeito de vidro — usado em cards de destaque e navegação */
-.glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.shadow-glow-cyan {
+  box-shadow: var(--shadow-glow-cyan);
 }
 
-/* Textura de grade muito sutil, usada como fundo decorativo em seções de destaque */
+/* Esconde a scrollbar mantendo o scroll (navegação horizontal de seções no mobile) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Painel com efeito de vidro — cards de destaque, navegação e superfícies flutuantes */
+.glass {
+  background: linear-gradient(180deg, rgba(148, 178, 255, 0.055), rgba(148, 178, 255, 0.015));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 178, 255, 0.1);
+}
+
+/* Textura de grade digital sutil — fundo decorativo em seções de destaque */
 .bg-grid {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    linear-gradient(rgba(148, 178, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 178, 255, 0.05) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 85%);
 }
 
-/* Texto com gradiente roxo→azul — usado com moderação, só na frase de maior destaque */
+/* Texto com gradiente azul→ciano — a assinatura visual da marca, usada na frase de maior destaque */
 .text-gradient {
-  background: linear-gradient(100deg, var(--color-accent-strong), var(--color-blue));
+  background: linear-gradient(100deg, var(--color-accent-strong), var(--color-cyan));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* Tema claro usado só na exportação de PDF (impressão) — aplicado temporariamente
-   ao elemento do relatório antes do html2canvas capturar, depois removido. Mesmos
-   tokens de cor, valores de tema claro, então todo componente já herda sem precisar
-   de nenhuma classe condicional no JSX. */
+/* Variante azul→violeta, pra alternar sem repetir o mesmo gradiente em toda parte */
+.text-gradient-violet {
+  background: linear-gradient(100deg, var(--color-accent-strong), var(--color-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Linha luminosa horizontal — divisor com vida, no lugar de border sólida */
+.glow-divider {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(91, 140, 255, 0.35), rgba(60, 217, 255, 0.25), transparent);
+}
+
+/* Aura de luz atrás de elementos-chave (hero, demo) — só transform/opacity animam */
+.aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion — tudo baseado em transform/opacity (GPU), nada de layout    */
+/* ------------------------------------------------------------------ */
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 1.8s ease-in-out infinite;
+}
+
+/* Flutuação lenta — elementos "respirando" */
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float-soft 7s ease-in-out infinite;
+}
+
+/* Deriva das auroras de fundo */
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(4%, -6%, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-4%, 4%, 0) scale(0.95);
+  }
+}
+
+.animate-aurora {
+  animation: aurora-drift 16s ease-in-out infinite;
+}
+
+/* Brilho que percorre uma superfície (shimmer) — usado em barras e skeletons */
+@keyframes shimmer-x {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer-x 2.4s ease-in-out infinite;
+}
+
+/* Feixe de luz que corre por uma linha (scanline das demos) */
+@keyframes beam-x {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(360%);
+  }
+}
+
+.animate-beam {
+  animation: beam-x 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Pulso de glow em volta de elementos ativos */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(91, 140, 255, 0.18), 0 0 32px -8px rgba(91, 140, 255, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(91, 140, 255, 0.3), 0 0 56px -6px rgba(91, 140, 255, 0.55);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3.6s ease-in-out infinite;
+}
+
+/* Entrada suave de baixo pra cima — para conteúdo revelado sem framer-motion */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Acessibilidade: quem pediu menos movimento no sistema recebe a interface parada */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Tema claro usado só na exportação de PDF (impressão) — aplicado     */
+/* temporariamente ao elemento do relatório antes do html2canvas       */
+/* capturar, depois removido. Mesmos tokens, valores de tema claro.    */
+/* ------------------------------------------------------------------ */
 .pdf-light {
-  --color-canvas: #fafafa;
+  --color-canvas: #fafbfd;
   --color-panel: #ffffff;
-  --color-panel-raised: #f2f2f5;
-  --color-line: #e5e5ea;
-  --color-ink: #0b0c0f;
-  --color-ink-soft: #4b4f58;
-  --color-ink-faint: #82858d;
-  --color-accent: #5b46d6;
-  --color-accent-strong: #4433c4;
-  --color-accent-soft: #eeecfc;
-  --color-accent-line: #d9d2f5;
+  --color-panel-raised: #f1f3f8;
+  --color-line: #e3e7ef;
+  --color-ink: #0a0e18;
+  --color-ink-soft: #4b515e;
+  --color-ink-faint: #7f8694;
+  --color-accent: #2f5fed;
+  --color-accent-strong: #1e4bd4;
+  --color-accent-soft: #eaf0fe;
+  --color-accent-line: #cfdcfa;
+  --color-cyan: #0891b2;
+  --color-cyan-soft: #e0f5fb;
+  --color-violet: #6d28d9;
+  --color-violet-soft: #f0ecfd;
   --color-blue: #2f6fed;
   --color-blue-soft: #eaf1fe;
   --color-warn: #b45309;
@@ -178,18 +364,4 @@ body {
 }
 .pdf-light .text-lg {
   font-size: 20px !important;
-}
-
-@keyframes pulse-soft {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 1.8s ease-in-out infinite;
 }

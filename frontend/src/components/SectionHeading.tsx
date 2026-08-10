@@ -5,7 +5,7 @@ export function SectionHeading({ eyebrow, title }: { eyebrow: string; title?: st
         <span className="h-1 w-1 rounded-full bg-accent shadow-glow" />
         {eyebrow}
       </span>
-      <span className="h-px flex-1 bg-line" />
+      <span className="h-px flex-1 bg-gradient-to-r from-line via-accent-line to-transparent" />
       {title && <span className="text-sm text-ink-soft">{title}</span>}
     </div>
   )
