@@ -936,7 +936,7 @@ export function Landing() {
               <Link to="/signup" className="block hover:text-ink transition-colors">Criar conta</Link>
             </FooterColumn>
             <FooterColumn title="Contato">
-              <a href="mailto:contato@ryber.app" className="block hover:text-ink transition-colors">contato@ryber.app</a>
+              <a href="mailto:rybertechnology@gmail.com" className="block hover:text-ink transition-colors">rybertechnology@gmail.com</a>
               <Link to="/privacidade" className="block hover:text-ink transition-colors">Política de Privacidade</Link>
               <Link to="/termos" className="block hover:text-ink transition-colors">Termos de Uso</Link>
             </FooterColumn>

@@ -177,8 +177,8 @@ export function Terms() {
           </p>
           <p>
             Dúvidas, cancelamentos ou solicitações de reembolso podem ser enviados para{' '}
-            <a href="mailto:contato@ryber.app" className="text-accent hover:underline">
-              contato@ryber.app
+            <a href="mailto:rybertechnology@gmail.com" className="text-accent hover:underline">
+              rybertechnology@gmail.com
             </a>
             .
           </p>

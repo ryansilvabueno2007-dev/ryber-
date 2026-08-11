@@ -146,8 +146,8 @@ export function Privacy() {
           </ul>
           <p>
             Para exercer qualquer um desses direitos, entre em contato pelo e-mail{' '}
-            <a href="mailto:contato@ryber.app" className="text-accent hover:underline">
-              contato@ryber.app
+            <a href="mailto:rybertechnology@gmail.com" className="text-accent hover:underline">
+              rybertechnology@gmail.com
             </a>
             . Responderemos dentro do prazo estabelecido pela LGPD.
           </p>
@@ -164,8 +164,8 @@ export function Privacy() {
         <Section title="10. Contato">
           <p>
             Dúvidas sobre esta política ou sobre o tratamento dos seus dados pessoais podem ser enviadas para{' '}
-            <a href="mailto:contato@ryber.app" className="text-accent hover:underline">
-              contato@ryber.app
+            <a href="mailto:rybertechnology@gmail.com" className="text-accent hover:underline">
+              rybertechnology@gmail.com
             </a>
             .
           </p>
