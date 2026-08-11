@@ -6,17 +6,6 @@ export async function exportElementToPdf(element: HTMLElement, filename: string)
 
   const scale = 2
 
-  // Limites verticais (em pixels do canvas final) de cada card/bloco que não pode
-  // ser cortado ao meio — medidos antes da captura, já que só mudamos cor (tema
-  // claro pra impressão), não layout, então a geometria não muda.
-  const containerTop = element.getBoundingClientRect().top
-  const blockBoundaries = Array.from(element.querySelectorAll<HTMLElement>('[data-pdf-block]'))
-    .map((el) => {
-      const r = el.getBoundingClientRect()
-      return { top: (r.top - containerTop) * scale, bottom: (r.bottom - containerTop) * scale }
-    })
-    .sort((a, b) => a.top - b.top)
-
   // Fundo branco/texto preto na exportação — mesmo com o app em tema escuro na
   // tela, o PDF fica no formato tradicional de documento, melhor pra imprimir.
   // pdf-freeze trava qualquer transição/animação CSS em andamento (ex: o círculo de
@@ -26,6 +15,22 @@ export async function exportElementToPdf(element: HTMLElement, filename: string)
   element.classList.add('pdf-light', 'pdf-freeze')
   await document.fonts.ready
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+
+  // Limites verticais (em pixels do canvas final) de cada card/bloco que não pode
+  // ser cortado ao meio — precisam ser medidos DEPOIS de aplicar 'pdf-light', não
+  // antes: esse tema não muda só cor, ele também aumenta o tamanho de várias fontes
+  // (ver .pdf-light .text-xs etc em index.css), o que reflui o texto e muda a altura
+  // real dos blocos. Medir antes usava alturas menores que as da captura de verdade,
+  // e esse desalinhamento crescia ao longo do relatório — por isso páginas mais pra
+  // frente do PDF ficavam com corte de página cada vez mais errado (espaço em branco
+  // enorme sobrando, ou bloco cortado no meio sem necessidade).
+  const containerTop = element.getBoundingClientRect().top
+  const blockBoundaries = Array.from(element.querySelectorAll<HTMLElement>('[data-pdf-block]'))
+    .map((el) => {
+      const r = el.getBoundingClientRect()
+      return { top: (r.top - containerTop) * scale, bottom: (r.bottom - containerTop) * scale }
+    })
+    .sort((a, b) => a.top - b.top)
 
   let canvas: HTMLCanvasElement
   try {
