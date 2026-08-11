@@ -24,6 +24,9 @@ export function Signup() {
     }
     if (!termsAccepted) {
       setError('Você precisa aceitar os Termos de Uso e a Política de Privacidade.')
+      const checkbox = document.getElementById('terms-checkbox')
+      checkbox?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      checkbox?.focus()
       return
     }
     setLoading(true)
@@ -91,6 +94,7 @@ export function Signup() {
 
           <label className="flex items-start gap-2.5 text-xs text-ink-soft leading-relaxed cursor-pointer">
             <input
+              id="terms-checkbox"
               type="checkbox"
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
@@ -113,8 +117,10 @@ export function Signup() {
 
           <button
             type="submit"
-            disabled={loading || !termsAccepted}
-            className="w-full rounded-full bg-accent text-white px-6 py-3.5 font-medium shadow-glow hover:bg-accent-strong transition-all disabled:opacity-60"
+            disabled={loading}
+            className={`w-full rounded-full bg-accent text-white px-6 py-3.5 font-medium shadow-glow hover:bg-accent-strong transition-all disabled:opacity-60 ${
+              !termsAccepted ? 'opacity-60' : ''
+            }`}
           >
             {loading ? 'Criando...' : 'Criar conta'}
           </button>
