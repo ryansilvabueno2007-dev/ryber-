@@ -251,15 +251,3 @@ export async function listOptimizations(analysisId: string): Promise<Optimizatio
   return asJson(res)
 }
 
-export async function saveCorrection(
-  id: string,
-  correction: AnalysisResult
-): Promise<AnalysisResult> {
-  const res = await fetch(`${BASE_URL}/api/analyses/${id}/correction`, {
-    method: 'PUT',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(correction),
-  })
-  return asJson(res)
-}

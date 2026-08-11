@@ -4,7 +4,6 @@ import {
   getStatus,
   getAnalysis,
   getCorrection,
-  saveCorrection,
   mediaUrl,
   getComparison,
   createComparison,
@@ -25,7 +24,6 @@ import { NicheBenchmark } from '../components/NicheBenchmark'
 import { MarketBenchmarkCard } from '../components/MarketBenchmarkCard'
 import { ObjectiveFitCard } from '../components/ObjectiveFitCard'
 import { OptimizeVideoCard } from '../components/OptimizeVideoCard'
-import { CorrectionForm } from '../components/CorrectionForm'
 import { exportElementToPdf } from '../lib/exportPdf'
 
 /* ------------------------------------------------------------------ */
@@ -126,7 +124,6 @@ export function Analysis() {
   const [status, setStatus] = useState<AnalysisStatus | null>(null)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [corrected, setCorrected] = useState(false)
-  const [editing, setEditing] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [hasComparison, setHasComparison] = useState(false)
   const [uploadingCompare, setUploadingCompare] = useState(false)
@@ -200,13 +197,6 @@ export function Analysis() {
     )
   }
 
-  async function handleSaveCorrection(next: AnalysisResult) {
-    const saved = await saveCorrection(id!, next)
-    setResult(saved)
-    setCorrected(true)
-    setEditing(false)
-  }
-
   async function handleCompareFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''
@@ -262,60 +252,51 @@ export function Analysis() {
             ) : (
               <span />
             )}
-            {!editing && (
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={handleExportPdf}
-                  disabled={exporting}
-                  className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all disabled:opacity-60"
-                >
-                  {exporting ? 'Gerando PDF...' : 'Exportar PDF'}
-                </button>
-                {hasComparison ? (
-                  <Link
-                    to={`/analysis/${id}/compare`}
-                    className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all"
-                  >
-                    Ver antes/depois
-                  </Link>
-                ) : (
-                  <>
-                    <input
-                      ref={compareInputRef}
-                      type="file"
-                      accept="video/*,image/*"
-                      className="hidden"
-                      onChange={handleCompareFileSelected}
-                    />
-                    <button
-                      onClick={() => compareInputRef.current?.click()}
-                      disabled={uploadingCompare}
-                      className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all disabled:opacity-60"
-                    >
-                      {uploadingCompare ? 'Enviando nova versão...' : 'Comparar com nova versão'}
-                    </button>
-                  </>
-                )}
-                <button
-                  onClick={() => setEditing(true)}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleExportPdf}
+                disabled={exporting}
+                className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all disabled:opacity-60"
+              >
+                {exporting ? 'Gerando PDF...' : 'Exportar PDF'}
+              </button>
+              {hasComparison ? (
+                <Link
+                  to={`/analysis/${id}/compare`}
                   className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all"
                 >
-                  Corrigir leitura
-                </button>
-              </div>
-            )}
+                  Ver antes/depois
+                </Link>
+              ) : (
+                <>
+                  <input
+                    ref={compareInputRef}
+                    type="file"
+                    accept="video/*,image/*"
+                    className="hidden"
+                    onChange={handleCompareFileSelected}
+                  />
+                  <button
+                    onClick={() => compareInputRef.current?.click()}
+                    disabled={uploadingCompare}
+                    title="Enviar uma nova versão consome 1 análise do seu plano, como qualquer análise nova"
+                    className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all disabled:opacity-60"
+                  >
+                    {uploadingCompare ? 'Enviando nova versão...' : 'Comparar com nova versão'}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           {compareError && <p className="text-danger text-sm">{compareError}</p>}
+          {!hasComparison && (
+            <p className="text-xs text-ink-faint -mt-2">
+              Enviar uma nova versão pra comparar consome 1 análise do seu plano, do mesmo jeito que uma análise nova.
+            </p>
+          )}
 
-          {editing ? (
-            <CorrectionForm
-              initial={result}
-              onSave={handleSaveCorrection}
-              onCancel={() => setEditing(false)}
-            />
-          ) : (
-            <div className="space-y-6">
-              <SectionNav hasBriefing={Boolean(result.briefing_compatibility)} />
+          <div className="space-y-6">
+            <SectionNav hasBriefing={Boolean(result.briefing_compatibility)} />
 
               <div ref={reportRef} className="space-y-6 bg-canvas">
                 <div className="pdf-only pb-5 mb-1 border-b border-line">
@@ -401,9 +382,8 @@ export function Analysis() {
                 )}
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
-    </div>
   )
 }
