@@ -24,6 +24,7 @@ import { NicheBenchmark } from '../components/NicheBenchmark'
 import { MarketBenchmarkCard } from '../components/MarketBenchmarkCard'
 import { ObjectiveFitCard } from '../components/ObjectiveFitCard'
 import { OptimizeVideoCard } from '../components/OptimizeVideoCard'
+import { CompareCostModal } from '../components/CompareCostModal'
 import { exportElementToPdf } from '../lib/exportPdf'
 
 /* ------------------------------------------------------------------ */
@@ -128,6 +129,7 @@ export function Analysis() {
   const [hasComparison, setHasComparison] = useState(false)
   const [uploadingCompare, setUploadingCompare] = useState(false)
   const [compareError, setCompareError] = useState<string | null>(null)
+  const [showCompareCostModal, setShowCompareCostModal] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const reportRef = useRef<HTMLDivElement>(null)
   const compareInputRef = useRef<HTMLInputElement>(null)
@@ -277,9 +279,8 @@ export function Analysis() {
                     onChange={handleCompareFileSelected}
                   />
                   <button
-                    onClick={() => compareInputRef.current?.click()}
+                    onClick={() => setShowCompareCostModal(true)}
                     disabled={uploadingCompare}
-                    title="Enviar uma nova versão consome 1 análise do seu plano, como qualquer análise nova"
                     className="text-xs font-medium text-ink-soft rounded-full border border-line bg-panel px-3.5 py-1.5 hover:text-ink hover:border-accent-line hover:-translate-y-px transition-all disabled:opacity-60"
                   >
                     {uploadingCompare ? 'Enviando nova versão...' : 'Comparar com nova versão'}
@@ -289,10 +290,15 @@ export function Analysis() {
             </div>
           </div>
           {compareError && <p className="text-danger text-sm">{compareError}</p>}
-          {!hasComparison && (
-            <p className="text-xs text-ink-faint -mt-2">
-              Enviar uma nova versão pra comparar consome 1 análise do seu plano, do mesmo jeito que uma análise nova.
-            </p>
+
+          {showCompareCostModal && (
+            <CompareCostModal
+              onClose={() => setShowCompareCostModal(false)}
+              onConfirm={() => {
+                setShowCompareCostModal(false)
+                compareInputRef.current?.click()
+              }}
+            />
           )}
 
           <div className="space-y-6">
