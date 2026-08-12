@@ -4,6 +4,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel
+from sqlalchemy import or_
 
 from app import asaas_client
 from app.auth import require_user
@@ -61,7 +62,6 @@ async def create_checkout_session(
             )
             db_user.asaas_customer_id = customer["id"]
         customer_id = db_user.asaas_customer_id
-        previous_subscription_id = db_user.asaas_subscription_id
         db.commit()
 
     subscription = asaas_client.create_subscription(
@@ -77,17 +77,14 @@ async def create_checkout_session(
 
     with SessionLocal() as db:
         db_user = db.get(User, user.id)
-        db_user.asaas_subscription_id = subscription_id
-        # "plan" só vira esse valor quando o webhook confirmar o primeiro pagamento —
-        # até lá fica só pendente, pra não mostrar um plano como "atual" sem ter pago nada.
+        # NÃO mexe em asaas_subscription_id aqui — ele continua apontando pra
+        # assinatura ATUAL (se houver), que segue válida até a nova ser paga de
+        # verdade. "pending_plan"/"pending_subscription_id" só viram "plan"/
+        # "asaas_subscription_id" de fato no webhook, quando o pagamento confirma.
+        # Isso evita que um checkout de teste não pago, ou um cartão recusado numa
+        # troca de plano, derrube o acesso de quem já tinha uma assinatura paga.
         db_user.pending_plan = plan
-        db_user.plan_renews_at = _add_month(date.today())
-        db_user.plan_canceled = False  # nova assinatura (ou reassinatura) — cancelamento anterior não vale mais
-        if previous_subscription_id and previous_subscription_id != subscription_id:
-            # Só cancela a assinatura antiga quando a nova for confirmada por pagamento
-            # (no webhook) — se cancelasse aqui e a pessoa abandonasse o checkout sem
-            # pagar, ficaria sem nenhum plano ativo.
-            db_user.pending_cancel_subscription_id = previous_subscription_id
+        db_user.pending_subscription_id = subscription_id
         db.commit()
 
     payments = asaas_client.get_subscription_payments(subscription_id)
@@ -154,33 +151,69 @@ async def asaas_webhook(request: Request) -> dict:
     body = await request.json()
     event = body.get("event", "")
 
-    def _set_subscribed(
-        subscription_id: str | None, value: bool, renews_at: date | None = None, confirm_plan: bool = False
-    ) -> None:
+    def _find_user(db, subscription_id: str):
+        # Casa tanto com a assinatura ATUAL (renovação normal) quanto com uma
+        # assinatura NOVA ainda pendente de confirmação (troca de plano em
+        # andamento) — as duas precisam de tratamento diferente, ver abaixo.
+        return (
+            db.query(User)
+            .filter(or_(User.asaas_subscription_id == subscription_id, User.pending_subscription_id == subscription_id))
+            .first()
+        )
+
+    def _confirm_payment(subscription_id: str | None, renews_at: date | None) -> None:
         if not subscription_id:
             return
         to_cancel = None
         with SessionLocal() as db:
-            db_user = db.query(User).filter(User.asaas_subscription_id == subscription_id).first()
-            if db_user is not None:
-                db_user.is_subscribed = value
-                if renews_at is not None:
-                    db_user.plan_renews_at = renews_at
-                if confirm_plan and db_user.pending_plan:
-                    db_user.plan = db_user.pending_plan
-                    db_user.pending_plan = None
-                    db_user.plan_started_at = datetime.now(timezone.utc)
-                    if db_user.pending_cancel_subscription_id:
-                        to_cancel = db_user.pending_cancel_subscription_id
-                        db_user.pending_cancel_subscription_id = None
-                db.commit()
+            db_user = _find_user(db, subscription_id)
+            if db_user is None:
+                return
+            if db_user.pending_subscription_id == subscription_id:
+                # Primeiro pagamento confirmado de uma assinatura nova (assinatura
+                # inicial ou troca de plano) — só agora ela vira "a" assinatura de
+                # verdade, e só agora é seguro cancelar a antiga (se havia uma).
+                old_id = db_user.asaas_subscription_id
+                if old_id and old_id != subscription_id:
+                    to_cancel = old_id
+                db_user.asaas_subscription_id = subscription_id
+                db_user.pending_subscription_id = None
+                db_user.plan = db_user.pending_plan
+                db_user.pending_plan = None
+                db_user.plan_started_at = datetime.now(timezone.utc)
+                db_user.plan_canceled = False
+            # Se não bateu com pending_subscription_id, é só a renovação mensal
+            # normal da assinatura que já era a ativa — nada a promover.
+            db_user.is_subscribed = True
+            if renews_at is not None:
+                db_user.plan_renews_at = renews_at
+            db.commit()
 
         if to_cancel:
-            # Só agora que o novo plano foi de fato pago é seguro cancelar o antigo.
             try:
                 asaas_client.cancel_subscription(to_cancel)
             except Exception:  # noqa: BLE001
                 pass
+
+    def _fail_payment(subscription_id: str | None) -> None:
+        if not subscription_id:
+            return
+        with SessionLocal() as db:
+            db_user = _find_user(db, subscription_id)
+            if db_user is None:
+                return
+            if db_user.pending_subscription_id == subscription_id:
+                # Falhou (ou foi abandonada, ex: checkout de teste não pago) uma
+                # tentativa de assinatura nova/troca de plano — desiste da troca,
+                # mas NÃO mexe na assinatura atual, que pode seguir perfeitamente
+                # válida e paga em dia.
+                db_user.pending_subscription_id = None
+                db_user.pending_plan = None
+            else:
+                # Falhou o pagamento da assinatura que já era a ativa — essa sim
+                # perde acesso.
+                db_user.is_subscribed = False
+            db.commit()
 
     # Dois sinais independentes pro mesmo estado — evento de cobrança (sempre chega,
     # já que gera a cada ciclo) e evento de assinatura (mais direto quando existe,
@@ -196,14 +229,14 @@ async def asaas_webhook(request: Request) -> dict:
                 renews_at = _add_month(date.fromisoformat(due_date))
             except ValueError:
                 renews_at = None
-        _set_subscribed(payment.get("subscription"), True, renews_at, confirm_plan=True)
+        _confirm_payment(payment.get("subscription"), renews_at)
 
     elif event in ("PAYMENT_OVERDUE", "PAYMENT_REFUNDED", "PAYMENT_DELETED"):
         payment = body.get("payment") or {}
-        _set_subscribed(payment.get("subscription"), False)
+        _fail_payment(payment.get("subscription"))
 
     elif event == "SUBSCRIPTION_DELETED" or event == "SUBSCRIPTION_INACTIVATED":
         subscription = body.get("subscription") or {}
-        _set_subscribed(subscription.get("id"), False)
+        _fail_payment(subscription.get("id"))
 
     return {"status": "ok"}
