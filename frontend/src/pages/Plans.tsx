@@ -6,11 +6,7 @@ import { CancelSubscriptionModal } from '../components/CancelSubscriptionModal'
 import { DeleteAccountModal } from '../components/DeleteAccountModal'
 import { useAuth } from '../context/AuthContext'
 import { PLANS, PLAN_FEATURES } from '../data/plans'
-
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+import { formatDate } from '../lib/formatDate'
 
 const TRUST_POINTS = [
   { title: 'Sem fidelidade', text: 'Assinatura mensal, cancele quando quiser.' },

@@ -7,6 +7,7 @@ import { AnimatedNumber } from '../components/AnimatedNumber'
 import { ProgressBar } from '../components/ProgressBar'
 import { useAuth } from '../context/AuthContext'
 import { getStats, listAnalyses, resendVerification } from '../api/client'
+import { formatDate } from '../lib/formatDate'
 import type { AnalysisSummary, DashboardStats, ScoreTrendPoint } from '../types'
 
 const PLAN_LABELS: Record<string, string> = {
@@ -15,11 +16,6 @@ const PLAN_LABELS: Record<string, string> = {
   platinum: 'Ryber Platinum',
   titanium: 'Ryber Titanium',
   infinity: 'Ryber Infinity',
-}
-
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 function formatPct(value: number | null): string {

@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { cancelSubscription } from '../api/client'
 import { useAuth } from '../context/AuthContext'
-
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+import { formatDate } from '../lib/formatDate'
 
 export function CancelSubscriptionModal({
   renewsAt,

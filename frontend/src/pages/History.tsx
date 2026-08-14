@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
 import { listAnalyses } from '../api/client'
+import { formatDate } from '../lib/formatDate'
 import type { AnalysisSummary } from '../types'
 
 const STAGE_LABEL: Record<string, string> = {
@@ -10,11 +11,6 @@ const STAGE_LABEL: Record<string, string> = {
   building: 'Finalizando',
   done: 'Concluída',
   error: 'Falhou',
-}
-
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 function formatPct(value: number | null): string {
