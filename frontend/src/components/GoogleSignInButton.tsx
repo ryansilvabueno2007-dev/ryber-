@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { trackPixelEvent } from '../lib/metaPixel'
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
 
@@ -62,6 +63,13 @@ export function GoogleSignInButton({ mode, onError, termsAccepted = true }: Prop
           }
           try {
             await loginWithGoogle(response.credential, mode === 'signup', termsAcceptedRef.current)
+            // Sem como saber aqui se a conta já existia ou acabou de ser criada
+            // (login com Google nesse modo faz as duas coisas) — dispara sempre que
+            // o fluxo é o de cadastro, aceitando a rara contagem extra de alguém
+            // que clica "continuar com Google" numa conta que já tinha.
+            if (mode === 'signup') {
+              trackPixelEvent('CompleteRegistration')
+            }
             navigate(mode === 'signup' ? '/welcome' : '/app')
           } catch (err) {
             onError(err instanceof Error ? err.message : 'Não foi possível entrar com o Google.')

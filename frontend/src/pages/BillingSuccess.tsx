@@ -1,7 +1,18 @@
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
+import { trackPixelEvent } from '../lib/metaPixel'
 
 export function BillingSuccess() {
+  // Evita disparar duas vezes num re-render (StrictMode monta o efeito 2x em dev).
+  const fired = useRef(false)
+
+  useEffect(() => {
+    if (fired.current) return
+    fired.current = true
+    trackPixelEvent('Purchase')
+  }, [])
+
   return (
     <div className="min-h-full flex flex-col">
       <Header />

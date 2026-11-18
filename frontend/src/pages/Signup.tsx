@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AuthValueProp } from '../components/AuthValueProp'
 import { GoogleSignInButton } from '../components/GoogleSignInButton'
 import { useAuth } from '../context/AuthContext'
+import { trackPixelEvent } from '../lib/metaPixel'
 
 export function Signup() {
   const { signup } = useAuth()
@@ -32,6 +33,7 @@ export function Signup() {
     setLoading(true)
     try {
       await signup(name, email, password, termsAccepted)
+      trackPixelEvent('CompleteRegistration')
       navigate('/welcome')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível criar a conta.')

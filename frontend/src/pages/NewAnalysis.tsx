@@ -3,15 +3,22 @@ import { useState } from 'react'
 import { UploadHero } from '../components/UploadHero'
 import { Header } from '../components/Header'
 import { createAnalysis } from '../api/client'
+import { useAuth } from '../context/AuthContext'
+import { trackPixelEvent } from '../lib/metaPixel'
 
 export function NewAnalysis() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(input: { file?: File; link?: string; briefing?: string }) {
     setError(null)
     try {
       const { id } = await createAnalysis(input)
+      // Sem plano ativo: essa é a análise grátis da conta (a única permitida antes de assinar).
+      if (!user?.plan && !user?.is_admin) {
+        trackPixelEvent('StartTrial')
+      }
       navigate(`/analysis/${id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao iniciar a análise.')
