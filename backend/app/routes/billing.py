@@ -62,7 +62,32 @@ async def create_checkout_session(
             )
             db_user.asaas_customer_id = customer["id"]
         customer_id = db_user.asaas_customer_id
+        # Reaproveita um checkout pendente pro MESMO plano em vez de criar assinatura
+        # nova — sem isso, clicar em "Assinar" mais de uma vez (ex: não gostou do
+        # boleto que apareceu de cara e tentou de novo) cria uma segunda assinatura
+        # de verdade na Asaas, cobrando duas vezes em vez de reaproveitar a mesma.
+        pending_same_plan = db_user.pending_subscription_id if db_user.pending_plan == plan else None
+        stale_pending = (
+            db_user.pending_subscription_id if db_user.pending_plan and db_user.pending_plan != plan else None
+        )
         db.commit()
+
+    if pending_same_plan:
+        try:
+            payments = asaas_client.get_subscription_payments(pending_same_plan)
+            if payments:
+                return {"url": payments[0]["invoiceUrl"]}
+        except Exception:  # noqa: BLE001
+            pass  # não existe mais do lado da Asaas (expirou, foi cancelada) — cria uma nova abaixo
+
+    if stale_pending:
+        # Trocou de plano no meio do caminho (abriu checkout de um, voltou e tentou
+        # outro) — cancela o checkout anterior pra não deixar duas assinaturas
+        # penduradas, uma delas nunca rastreada no nosso banco.
+        try:
+            asaas_client.cancel_subscription(stale_pending)
+        except Exception:  # noqa: BLE001
+            pass
 
     subscription = asaas_client.create_subscription(
         customer_id=customer_id,
