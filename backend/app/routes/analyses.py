@@ -4,6 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, RedirectResponse
+from starlette.concurrency import run_in_threadpool
 
 from app import storage, storage_r2
 from app.auth import require_csrf, require_user
@@ -64,7 +65,7 @@ def _check_quota(user: User) -> None:
         )
 
 
-def _start_analysis(
+async def _start_analysis(
     file: Optional[UploadFile],
     link: Optional[str],
     briefing: Optional[str],
@@ -94,7 +95,10 @@ def _start_analysis(
             raise HTTPException(413, f"Arquivo maior que {settings.max_upload_mb}MB.")
 
         video_key = f"uploads/{analysis_id}{suffix}"
-        storage_r2.upload_fileobj(video_key, file.file, content_type=file.content_type or "application/octet-stream")
+        await run_in_threadpool(
+            storage_r2.upload_fileobj,
+            video_key, file.file, content_type=file.content_type or "application/octet-stream",
+        )
 
     storage.create_analysis(analysis_id, user.id, compared_to_id=compared_to_id)
     storage.set_status(analysis_id, "reading", "Preparando vídeo")
@@ -113,7 +117,7 @@ async def create_analysis(
     briefing: Optional[str] = Form(None),
     user: User = Depends(require_user),
 ) -> CreateAnalysisResponse:
-    analysis_id = _start_analysis(file, link, briefing, user)
+    analysis_id = await _start_analysis(file, link, briefing, user)
     return CreateAnalysisResponse(id=analysis_id)
 
 
@@ -131,7 +135,7 @@ async def create_comparison(
 ) -> CreateAnalysisResponse:
     """Sobe uma nova versão do criativo (o "depois"), vinculada a uma análise já existente (o "antes")."""
     _require_owned(analysis_id, user)
-    new_id = _start_analysis(file, link, briefing, user, compared_to_id=analysis_id)
+    new_id = await _start_analysis(file, link, briefing, user, compared_to_id=analysis_id)
     return CreateAnalysisResponse(id=new_id)
 
 
@@ -187,7 +191,7 @@ async def get_media(analysis_id: str, user: User = Depends(require_user)):
     _require_owned(analysis_id, user)
 
     if storage_r2.is_configured():
-        key = storage_r2.find_key_by_prefix(f"uploads/{analysis_id}.")
+        key = await run_in_threadpool(storage_r2.find_key_by_prefix, f"uploads/{analysis_id}.")
         if key is not None:
             return RedirectResponse(storage_r2.presigned_url(key))
 

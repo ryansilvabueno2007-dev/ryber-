@@ -6,6 +6,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session as DBSession
+from starlette.concurrency import run_in_threadpool
 
 from app import asaas_client, auth, email_client, storage_r2
 from app.config import settings
@@ -147,10 +148,11 @@ def _register_email_and_check_trial_claimed(db: DBSession, email: str) -> bool:
     return already_known
 
 
-def _send_verification_email(db: DBSession, user: User) -> None:
+async def _send_verification_email(db: DBSession, user: User) -> None:
     token = auth.create_email_verification_token(db, user)
     verify_link = f"{settings.frontend_url}/verificar-email?token={token}"
-    email_client.send_email(
+    await run_in_threadpool(
+        email_client.send_email,
         to=user.email,
         subject="Confirme seu e-mail na Ryber",
         html=_verification_email_html(user.name, verify_link),
@@ -199,7 +201,7 @@ async def signup(
     db.commit()
     db.refresh(user)
 
-    _send_verification_email(db, user)
+    await _send_verification_email(db, user)
 
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
@@ -229,8 +231,8 @@ async def google_auth(
         raise HTTPException(503, "Login com Google ainda não configurado.")
 
     try:
-        idinfo = google_id_token.verify_oauth2_token(
-            payload.id_token, google_requests.Request(), settings.google_client_id
+        idinfo = await run_in_threadpool(
+            google_id_token.verify_oauth2_token, payload.id_token, google_requests.Request(), settings.google_client_id
         )
     except ValueError:
         raise HTTPException(401, "Token do Google inválido.") from None
@@ -279,7 +281,8 @@ async def forgot_password(
     if user is not None:
         token = auth.create_password_reset_token(db, user)
         reset_link = f"{settings.frontend_url}/redefinir-senha?token={token}"
-        email_client.send_email(
+        await run_in_threadpool(
+            email_client.send_email,
             to=user.email,
             subject="Redefinir sua senha na Ryber",
             html=_password_reset_email_html(user.name, reset_link),
@@ -327,7 +330,7 @@ async def resend_verification(
 ) -> dict:
     if user.email_verified_at is not None:
         raise HTTPException(400, "Esse e-mail já está confirmado.")
-    _send_verification_email(db, user)
+    await _send_verification_email(db, user)
     return {"status": "ok"}
 
 
@@ -342,15 +345,15 @@ async def delete_account(
     recorrente órfã rodando pra uma conta que não existe mais."""
     if user.asaas_subscription_id:
         try:
-            asaas_client.cancel_subscription(user.asaas_subscription_id)
+            await run_in_threadpool(asaas_client.cancel_subscription, user.asaas_subscription_id)
         except Exception:  # noqa: BLE001
             pass  # já capturado pelo Sentry — não pode travar a exclusão por isso
 
     analyses = db.query(Analysis).filter(Analysis.user_id == user.id).all()
     for analysis in analyses:
         try:
-            storage_r2.delete_prefix(f"uploads/{analysis.id}")
-            storage_r2.delete_prefix(f"raw/{analysis.id}/")
+            await run_in_threadpool(storage_r2.delete_prefix, f"uploads/{analysis.id}")
+            await run_in_threadpool(storage_r2.delete_prefix, f"raw/{analysis.id}/")
         except Exception:  # noqa: BLE001
             pass
 

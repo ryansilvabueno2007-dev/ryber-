@@ -6,6 +6,7 @@ from typing import Literal
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import or_
+from starlette.concurrency import run_in_threadpool
 
 from app import asaas_client, meta_client
 from app.auth import require_csrf, require_user
@@ -58,8 +59,9 @@ async def create_checkout_session(
             db_user.cpf_cnpj = doc
             db_user.asaas_customer_id = None
         if db_user.asaas_customer_id is None:
-            customer = asaas_client.create_customer(
-                name=db_user.name or db_user.email, cpf_cnpj=doc, email=db_user.email, external_reference=db_user.id
+            customer = await run_in_threadpool(
+                asaas_client.create_customer,
+                name=db_user.name or db_user.email, cpf_cnpj=doc, email=db_user.email, external_reference=db_user.id,
             )
             db_user.asaas_customer_id = customer["id"]
         customer_id = db_user.asaas_customer_id
@@ -75,7 +77,7 @@ async def create_checkout_session(
 
     if pending_same_plan:
         try:
-            payments = asaas_client.get_subscription_payments(pending_same_plan)
+            payments = await run_in_threadpool(asaas_client.get_subscription_payments, pending_same_plan)
             # Só reaproveita se ainda estiver PENDING (pagável) — como next_due_date
             # é sempre "hoje", uma cobrança de ontem já venceu, e devolver o mesmo
             # link devolveria um QR Code Pix morto. Vencida, trata como a antiga:
@@ -92,11 +94,12 @@ async def create_checkout_session(
         # outro) — cancela o checkout anterior pra não deixar duas assinaturas
         # penduradas, uma delas nunca rastreada no nosso banco.
         try:
-            asaas_client.cancel_subscription(stale_pending)
+            await run_in_threadpool(asaas_client.cancel_subscription, stale_pending)
         except Exception:  # noqa: BLE001
             pass
 
-    subscription = asaas_client.create_subscription(
+    subscription = await run_in_threadpool(
+        asaas_client.create_subscription,
         customer_id=customer_id,
         value=value,
         external_reference=user.id,
@@ -119,7 +122,7 @@ async def create_checkout_session(
         db_user.pending_subscription_id = subscription_id
         db.commit()
 
-    payments = asaas_client.get_subscription_payments(subscription_id)
+    payments = await run_in_threadpool(asaas_client.get_subscription_payments, subscription_id)
     if not payments:
         raise HTTPException(502, "Não foi possível gerar a cobrança inicial da assinatura.")
 
@@ -154,7 +157,7 @@ async def cancel_subscription(
         db.commit()
 
     try:
-        asaas_client.cancel_subscription(subscription_id)
+        await run_in_threadpool(asaas_client.cancel_subscription, subscription_id)
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(
             502, "Não foi possível cancelar a assinatura agora. Tente de novo em instantes."
@@ -203,7 +206,9 @@ async def asaas_webhook(request: Request) -> dict:
             .first()
         )
 
-    def _confirm_payment(subscription_id: str | None, renews_at: date | None, payment_id: str | None = None) -> None:
+    async def _confirm_payment(
+        subscription_id: str | None, renews_at: date | None, payment_id: str | None = None
+    ) -> None:
         if not subscription_id:
             return
         to_cancel = None
@@ -237,7 +242,7 @@ async def asaas_webhook(request: Request) -> dict:
 
         if to_cancel:
             try:
-                asaas_client.cancel_subscription(to_cancel)
+                await run_in_threadpool(asaas_client.cancel_subscription, to_cancel)
             except Exception:  # noqa: BLE001
                 pass
 
@@ -246,7 +251,8 @@ async def asaas_webhook(request: Request) -> dict:
             # event_id = a própria cobrança (payment_id, se veio no webhook; senão a
             # assinatura) — identificador estável pra nunca mandar duas vezes o mesmo
             # Purchase mesmo que a Asaas reenvie a notificação (ela reenvia).
-            meta_client.send_event(
+            await run_in_threadpool(
+                meta_client.send_event,
                 "Purchase",
                 event_id=f"payment_{payment_id or subscription_id}",
                 email=email,
@@ -288,7 +294,7 @@ async def asaas_webhook(request: Request) -> dict:
                 renews_at = _add_month(date.fromisoformat(due_date))
             except ValueError:
                 renews_at = None
-        _confirm_payment(payment.get("subscription"), renews_at, payment_id=payment.get("id"))
+        await _confirm_payment(payment.get("subscription"), renews_at, payment_id=payment.get("id"))
 
     elif event in ("PAYMENT_OVERDUE", "PAYMENT_REFUNDED", "PAYMENT_DELETED"):
         payment = body.get("payment") or {}
