@@ -2,6 +2,12 @@ import json
 import subprocess
 from pathlib import Path
 
+# Um arquivo corrompido ou malicioso disfarçado de vídeo pode fazer o ffmpeg/ffprobe
+# travar (ou rodar por tempo desproporcional) em vez de simplesmente falhar rápido — sem
+# timeout, isso prende o worker inteiro indefinidamente num único job. O caller (tasks.py)
+# já captura qualquer exceção e marca a análise como erro, então estourar aqui é seguro.
+_SUBPROCESS_TIMEOUT_SECONDS = 120
+
 
 def probe_duration(video_path: Path) -> float:
     out = subprocess.run(
@@ -18,6 +24,7 @@ def probe_duration(video_path: Path) -> float:
         capture_output=True,
         text=True,
         check=True,
+        timeout=_SUBPROCESS_TIMEOUT_SECONDS,
     )
     data = json.loads(out.stdout)
     return float(data["format"]["duration"])
@@ -41,6 +48,7 @@ def extract_audio(video_path: Path, out_path: Path) -> Path:
         ],
         capture_output=True,
         check=True,
+        timeout=_SUBPROCESS_TIMEOUT_SECONDS,
     )
     return out_path
 
@@ -65,6 +73,7 @@ def extract_frames(video_path: Path, out_dir: Path, max_frames: int) -> list[tup
         ],
         capture_output=True,
         check=True,
+        timeout=_SUBPROCESS_TIMEOUT_SECONDS,
     )
 
     frames = sorted(out_dir.glob("frame_*.jpg"))

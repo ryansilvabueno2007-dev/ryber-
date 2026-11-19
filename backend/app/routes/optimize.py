@@ -1,21 +1,18 @@
 import json
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app import storage
-from app.auth import require_user
+from app.auth import require_csrf, require_user
+from app.config import settings
 from app.db_models import User
 from app.models import CreateOptimizationRequest, OptimizationStatus, SceneDirection
 from app.pipeline import optimizer
 from app.queue import queue
+from app.rate_limit import limiter
 
 router = APIRouter(prefix="/api", tags=["optimize"])
-
-# Status que já consumiram (ou estão consumindo) a chamada de IA — uma vez que exista um
-# desses pra uma análise, não deixamos gerar outro. Só "error" não conta: nada foi
-# produzido, então vale deixar tentar de novo.
-_LOCKING_STATUSES = ("queued", "processing", "done")
 
 
 def _to_status(row) -> OptimizationStatus:
@@ -32,9 +29,12 @@ def _to_status(row) -> OptimizationStatus:
     )
 
 
-@router.post("/analyses/{analysis_id}/optimize", response_model=OptimizationStatus)
+@router.post(
+    "/analyses/{analysis_id}/optimize", response_model=OptimizationStatus, dependencies=[Depends(require_csrf)]
+)
+@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
 async def create_optimization(
-    analysis_id: str, payload: CreateOptimizationRequest, user: User = Depends(require_user)
+    request: Request, analysis_id: str, payload: CreateOptimizationRequest, user: User = Depends(require_user)
 ) -> OptimizationStatus:
     if storage.get_owner(analysis_id) != user.id:
         raise HTTPException(404, "Análise não encontrada.")
@@ -45,15 +45,15 @@ async def create_optimization(
     # Cada chamada tem custo real de IA — libera só uma geração por vídeo pra quem não é
     # admin (senão a pessoa gera de novo trocando o objetivo e o custo escala sem
     # controle). Conta de admin pode gerar quantas vezes quiser, pra continuar testando.
-    if not user.is_admin:
-        existing = storage.list_optimizations_for_analysis(analysis_id, user.id)
-        if any(o.status in _LOCKING_STATUSES for o in existing):
-            raise HTTPException(
-                409, "Você já gerou o roteiro de edição para este vídeo — só é permitido uma vez."
-            )
-
+    # create_optimization_if_allowed checa e cria numa única transação travada, pra
+    # requisições concorrentes não furarem esse limite (ver storage.py).
     optimization_id = uuid.uuid4().hex
-    storage.create_optimization(optimization_id, analysis_id, user.id, payload.objective)
+    created = storage.create_optimization_if_allowed(
+        optimization_id, analysis_id, user.id, payload.objective, allow_multiple=user.is_admin
+    )
+    if not created:
+        raise HTTPException(409, "Você já gerou o roteiro de edição para este vídeo — só é permitido uma vez.")
+
     queue.enqueue(
         optimizer.process_optimization, optimization_id, analysis_id, payload.objective, job_timeout="10m"
     )

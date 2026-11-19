@@ -1,9 +1,10 @@
 import hashlib
+import hmac
 import secrets
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
-from fastapi import Cookie, Depends, HTTPException
+from fastapi import Cookie, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session as DBSession
 
 from app.config import settings
@@ -11,6 +12,8 @@ from app.db import get_db
 from app.db_models import EmailVerificationToken, PasswordResetToken
 from app.db_models import Session as SessionModel
 from app.db_models import User
+
+CSRF_COOKIE_NAME = "ryber_csrf"
 
 
 def hash_password(password: str) -> str:
@@ -108,3 +111,34 @@ def require_admin(user: User = Depends(require_user)) -> User:
     if not user.is_admin:
         raise HTTPException(404)
     return user
+
+
+def create_csrf_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def set_csrf_cookie(response: Response, token: str) -> None:
+    """Cookie legível por JS (não-HttpOnly, de propósito) — o padrão "double submit
+    cookie": o frontend ecoa esse valor no header X-CSRF-Token em toda requisição que
+    muda estado, e require_csrf() confere que os dois batem. Um site malicioso consegue
+    fazer o navegador da vítima *enviar* o cookie de sessão automaticamente, mas não
+    consegue *ler* este cookie (bloqueado pela mesma-origem) pra montar o header —
+    por isso a checagem prova que a requisição partiu do próprio frontend da Ryber."""
+    response.set_cookie(
+        key=CSRF_COOKIE_NAME,
+        value=token,
+        httponly=False,
+        secure=settings.session_cookie_secure,
+        samesite="none" if settings.session_cookie_secure else "lax",
+        max_age=settings.session_ttl_days * 24 * 3600,
+        path="/",
+    )
+
+
+def require_csrf(
+    request: Request,
+    csrf_cookie: str | None = Cookie(default=None, alias=CSRF_COOKIE_NAME),
+) -> None:
+    header_token = request.headers.get("x-csrf-token")
+    if not csrf_cookie or not header_token or not hmac.compare_digest(csrf_cookie, header_token):
+        raise HTTPException(403, "Requisição bloqueada por proteção CSRF. Recarregue a página e tente de novo.")

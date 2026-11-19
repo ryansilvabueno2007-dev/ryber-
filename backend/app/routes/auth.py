@@ -167,6 +167,7 @@ def _set_session_cookie(response: Response, token: str) -> None:
         max_age=settings.session_ttl_days * 24 * 3600,
         path="/",
     )
+    auth.set_csrf_cookie(response, auth.create_csrf_token())
 
 
 @router.post("/signup", response_model=UserResponse)
@@ -206,7 +207,10 @@ async def signup(
 
 
 @router.post("/login", response_model=UserResponse)
-async def login(payload: LoginRequest, response: Response, db: DBSession = Depends(get_db)) -> UserResponse:
+@limiter.limit("5/minute")
+async def login(
+    request: Request, payload: LoginRequest, response: Response, db: DBSession = Depends(get_db)
+) -> UserResponse:
     user = db.query(User).filter(User.email == payload.email.lower()).first()
     if user is None or not auth.verify_password(payload.password, user.password_hash):
         raise HTTPException(401, "E-mail ou senha inválidos.")
@@ -327,7 +331,7 @@ async def resend_verification(
     return {"status": "ok"}
 
 
-@router.delete("/account")
+@router.delete("/account", dependencies=[Depends(auth.require_csrf)])
 @limiter.limit("3/hour")
 async def delete_account(
     request: Request, response: Response, db: DBSession = Depends(get_db), user: User = Depends(auth.require_user)
@@ -360,6 +364,7 @@ async def delete_account(
     db.commit()
 
     response.delete_cookie(settings.session_cookie_name, path="/")
+    response.delete_cookie(auth.CSRF_COOKIE_NAME, path="/")
     return {"status": "ok"}
 
 
@@ -372,9 +377,14 @@ async def logout(
     if token:
         auth.destroy_session(db, token)
     response.delete_cookie(settings.session_cookie_name, path="/")
+    response.delete_cookie(auth.CSRF_COOKIE_NAME, path="/")
     return {"status": "ok"}
 
 
 @router.get("/me", response_model=UserResponse)
-async def me(user: User = Depends(auth.require_user)) -> UserResponse:
+async def me(response: Response, user: User = Depends(auth.require_user)) -> UserResponse:
+    # Garante o cookie CSRF pra sessões que já existiam antes dessa proteção existir
+    # (criadas num login anterior ao deploy) — /me é chamado a cada carregamento da
+    # página autenticada, então a sessão se "autocura" sem precisar deslogar/logar de novo.
+    auth.set_csrf_cookie(response, auth.create_csrf_token())
     return _to_user_response(user)

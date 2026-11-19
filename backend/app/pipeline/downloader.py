@@ -83,6 +83,25 @@ def download_from_link(url: str, dest_dir: Path, analysis_id: str) -> Path:
 _RATE_LIMIT_BACKOFF_SECONDS = [5, 15, 45]
 
 
+def _validate_extracted_formats(info: dict) -> None:
+    """O host original do link (instagram.com etc.) já passou pela allowlist, mas o
+    vídeo de verdade é servido por uma URL de CDN resolvida pelo próprio yt-dlp — sem
+    revalidar essa URL, um redirect/resposta manipulada poderia em tese apontar pra rede
+    interna do servidor (mesmo risco de SSRF que _try_download_image já trata pro
+    caminho de imagem)."""
+    urls = []
+    if info.get("url"):
+        urls.append(info["url"])
+    for fmt in info.get("formats") or []:
+        if fmt.get("url"):
+            urls.append(fmt["url"])
+    for entry in info.get("entries") or []:
+        if entry:
+            _validate_extracted_formats(entry)
+    for u in urls:
+        _validate_url(u)
+
+
 def _download_video(url: str, dest_dir: Path, analysis_id: str) -> Path:
     outtmpl = str(dest_dir / f"{analysis_id}.%(ext)s")
     ydl_opts = {
@@ -101,6 +120,9 @@ def _download_video(url: str, dest_dir: Path, analysis_id: str) -> Path:
             time.sleep(backoff)
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                if info:
+                    _validate_extracted_formats(info)
                 ydl.download([url])
             matches = list(dest_dir.glob(f"{analysis_id}.*"))
             if not matches:

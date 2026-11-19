@@ -14,6 +14,16 @@ import type {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
+// Lê o cookie CSRF (não-HttpOnly, de propósito) e ecoa no header X-CSRF-Token — o
+// backend confere que os dois batem (padrão "double submit cookie"). Um site de
+// terceiros não consegue ler esse cookie (bloqueado pela mesma-origem), então só
+// requisições que partem do próprio frontend da Ryber conseguem montar esse header.
+function csrfHeaders(): Record<string, string> {
+  const match = document.cookie.match(/(?:^|; )ryber_csrf=([^;]*)/)
+  const token = match ? decodeURIComponent(match[1]) : null
+  return token ? { 'X-CSRF-Token': token } : {}
+}
+
 async function asJson<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({ detail: res.statusText }))
@@ -104,6 +114,7 @@ export async function deleteAccount(): Promise<void> {
   const res = await fetch(`${BASE_URL}/api/auth/account`, {
     method: 'DELETE',
     credentials: 'include',
+    headers: csrfHeaders(),
   })
   await asJson(res)
 }
@@ -122,7 +133,7 @@ export async function createCheckoutSession(plan: string, cpfCnpj?: string): Pro
   const res = await fetch(`${BASE_URL}/api/billing/checkout`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
     body: JSON.stringify({ plan, cpf_cnpj: cpfCnpj ?? null }),
   })
   return asJson(res)
@@ -135,7 +146,7 @@ export async function cancelSubscription(
   const res = await fetch(`${BASE_URL}/api/billing/cancel`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
     body: JSON.stringify({ experience, reason }),
   })
   return asJson(res)
@@ -170,6 +181,7 @@ export async function createAnalysis(params: {
   const res = await fetch(`${BASE_URL}/api/analyses`, {
     method: 'POST',
     credentials: 'include',
+    headers: csrfHeaders(),
     body: form,
   })
   return asJson(res)
@@ -187,6 +199,7 @@ export async function createComparison(
   const res = await fetch(`${BASE_URL}/api/analyses/${id}/compare`, {
     method: 'POST',
     credentials: 'include',
+    headers: csrfHeaders(),
     body: form,
   })
   return asJson(res)
@@ -235,7 +248,7 @@ export async function createOptimization(
   const res = await fetch(`${BASE_URL}/api/analyses/${analysisId}/optimize`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
     body: JSON.stringify({ objective }),
   })
   return asJson(res)

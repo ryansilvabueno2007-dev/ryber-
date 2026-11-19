@@ -254,6 +254,44 @@ def create_optimization(optimization_id: str, analysis_id: str, user_id: str, ob
         db.commit()
 
 
+# Status que já consumiram (ou estão consumindo) a chamada de IA da otimização — ver
+# create_optimization_if_allowed.
+LOCKING_STATUSES = ("queued", "processing", "done")
+
+
+def create_optimization_if_allowed(
+    optimization_id: str, analysis_id: str, user_id: str, objective: str, allow_multiple: bool
+) -> bool:
+    """Checa o limite de "uma geração por análise" e cria a otimização numa única
+    transação, travando a linha da Analysis (SELECT ... FOR UPDATE) pra serializar
+    requisições concorrentes na mesma análise — sem isso, duas chamadas simultâneas
+    podiam passar pela checagem antes de qualquer uma commitar e furar o limite,
+    gerando duas chamadas de IA cobradas pelo preço de uma. Retorna False se o limite
+    já foi atingido (nada é criado nesse caso)."""
+    with SessionLocal() as db:
+        db.query(Analysis).filter(Analysis.id == analysis_id).with_for_update().first()
+        if not allow_multiple:
+            existing = (
+                db.query(Optimization)
+                .filter(Optimization.analysis_id == analysis_id, Optimization.user_id == user_id)
+                .filter(Optimization.status.in_(LOCKING_STATUSES))
+                .first()
+            )
+            if existing is not None:
+                return False
+        db.add(
+            Optimization(
+                id=optimization_id,
+                analysis_id=analysis_id,
+                user_id=user_id,
+                objective=objective,
+                status="queued",
+            )
+        )
+        db.commit()
+        return True
+
+
 def set_optimization_status(
     optimization_id: str, status: str, error: str | None = None, report_json: str | None = None,
 ) -> None:

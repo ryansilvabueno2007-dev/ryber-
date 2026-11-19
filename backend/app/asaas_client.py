@@ -2,6 +2,8 @@
 app/routes/billing.py. Autenticação via header "access_token" (não é Bearer/OAuth).
 Base URL muda conforme o ambiente configurado (sandbox pra testes, produção pra valer).
 """
+import re
+
 import httpx
 
 from app.config import settings
@@ -10,6 +12,18 @@ _BASE_URLS = {
     "sandbox": "https://api-sandbox.asaas.com/v3",
     "production": "https://api.asaas.com/v3",
 }
+
+_EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
+_DOC_RE = re.compile(r"\d{11,14}")
+
+
+def _redact_pii(text: str) -> str:
+    """O corpo de erro da Asaas pode ecoar de volta dado enviado por nós (nome, CPF/CNPJ,
+    e-mail do cliente) — mascara antes de logar, já que esse print vai pros logs de
+    infraestrutura (Render), sem o controle de PII que o Sentry tem (send_default_pii=False)."""
+    text = _EMAIL_RE.sub("[email]", text)
+    text = _DOC_RE.sub("[documento]", text)
+    return text
 
 
 def _base_url() -> str:
@@ -25,7 +39,7 @@ def _raise_with_body(resp: httpx.Response) -> None:
     (obrigatório, formato inválido, etc) vem no corpo da resposta da Asaas. Sem logar
     isso, um 400 vira um traceback genérico impossível de diagnosticar."""
     if resp.status_code >= 400:
-        print(f"[asaas] {resp.status_code} em {resp.request.url}: {resp.text}", flush=True)
+        print(f"[asaas] {resp.status_code} em {resp.request.url}: {_redact_pii(resp.text)}", flush=True)
     resp.raise_for_status()
 
 

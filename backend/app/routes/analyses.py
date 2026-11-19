@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Uplo
 from fastapi.responses import FileResponse, RedirectResponse
 
 from app import storage, storage_r2
-from app.auth import require_user
+from app.auth import require_csrf, require_user
 from app.config import settings
 from app.db_models import User
 from app.models import (
@@ -24,6 +24,13 @@ from app.subscription import is_plan_active
 router = APIRouter(prefix="/api", tags=["analyses"])
 
 PLAN_QUOTAS = {"start": 10, "gold": 30, "platinum": 60, "titanium": 100, "infinity": 300}
+
+# Extensões aceitas no upload — qualquer outra é rejeitada antes de subir pra R2 ou
+# chegar ao worker (que rodaria ffmpeg/ffprobe/Pillow sobre o conteúdo às cegas).
+_ALLOWED_UPLOAD_SUFFIXES = {
+    ".mp4", ".mov", ".webm", ".avi", ".mkv", ".m4v",
+    ".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif",
+}
 
 
 def _require_owned(analysis_id: str, user: User) -> None:
@@ -76,7 +83,9 @@ def _start_analysis(
         if not storage_r2.is_configured():
             raise HTTPException(503, "Armazenamento ainda não configurado.")
 
-        suffix = Path(file.filename or "video.mp4").suffix or ".mp4"
+        suffix = Path(file.filename or "video.mp4").suffix.lower() or ".mp4"
+        if suffix not in _ALLOWED_UPLOAD_SUFFIXES:
+            raise HTTPException(400, "Formato de arquivo não suportado. Envie um vídeo ou imagem.")
         file.file.seek(0, 2)
         size = file.file.tell()
         file.file.seek(0)
@@ -95,7 +104,7 @@ def _start_analysis(
     return analysis_id
 
 
-@router.post("/analyses", response_model=CreateAnalysisResponse)
+@router.post("/analyses", response_model=CreateAnalysisResponse, dependencies=[Depends(require_csrf)])
 @limiter.limit(f"{settings.rate_limit_per_minute}/minute")
 async def create_analysis(
     request: Request,
@@ -108,7 +117,9 @@ async def create_analysis(
     return CreateAnalysisResponse(id=analysis_id)
 
 
-@router.post("/analyses/{analysis_id}/compare", response_model=CreateAnalysisResponse)
+@router.post(
+    "/analyses/{analysis_id}/compare", response_model=CreateAnalysisResponse, dependencies=[Depends(require_csrf)]
+)
 @limiter.limit(f"{settings.rate_limit_per_minute}/minute")
 async def create_comparison(
     request: Request,
@@ -131,6 +142,11 @@ async def get_comparison(analysis_id: str, user: User = Depends(require_user)) -
     if pair is None:
         raise HTTPException(404, "Nenhuma comparação encontrada para esta análise.")
     before_id, after_id = pair
+    # Defesa em profundidade: o par vem de compared_to_id, que hoje só é gravado com os
+    # dois lados sempre do mesmo dono (ver _start_analysis) — mas não custa confirmar de
+    # novo aqui, pra não depender só desse invariante se algo mudar no futuro.
+    if storage.get_owner(before_id) != user.id or storage.get_owner(after_id) != user.id:
+        raise HTTPException(404, "Nenhuma comparação encontrada para esta análise.")
 
     before = storage.load_result(before_id)
     after = storage.load_result(after_id)
@@ -190,7 +206,9 @@ async def get_correction(analysis_id: str, user: User = Depends(require_user)) -
     return correction
 
 
-@router.put("/analyses/{analysis_id}/correction", response_model=AnalysisResult)
+@router.put(
+    "/analyses/{analysis_id}/correction", response_model=AnalysisResult, dependencies=[Depends(require_csrf)]
+)
 async def save_correction(
     analysis_id: str, correction: AnalysisResult, user: User = Depends(require_user)
 ) -> AnalysisResult:

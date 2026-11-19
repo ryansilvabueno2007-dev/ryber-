@@ -11,7 +11,12 @@ _BASE_URL = "https://api.resend.com"
 
 def send_email(to: str, subject: str, html: str) -> None:
     if not settings.resend_api_key:
-        print(f"[email] RESEND_API_KEY não configurada — e-mail p/ {to} não enviado.\nAssunto: {subject}\n{html}", flush=True)
+        # Nunca imprime o corpo do e-mail aqui: em produção esse HTML costuma trazer um
+        # link/token sensível (reset de senha, verificação de e-mail) — se essa condição
+        # bater sem querer (chave apagada/rotacionada por engano), esse print não pode
+        # vazar o token pros logs de infraestrutura (Render etc.), que têm acesso mais
+        # amplo do que o Sentry.
+        print(f"[email] RESEND_API_KEY não configurada — e-mail p/ {to} não enviado. Assunto: {subject}", flush=True)
         return
 
     resp = httpx.post(

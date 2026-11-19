@@ -1,4 +1,5 @@
 import calendar
+import hmac
 from datetime import date, datetime, timezone
 from typing import Literal
 
@@ -7,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import or_
 
 from app import asaas_client, meta_client
-from app.auth import require_user
+from app.auth import require_csrf, require_user
 from app.config import settings
 from app.db import SessionLocal
 from app.db_models import CancellationFeedback, User
@@ -35,7 +36,7 @@ def _add_month(d: date) -> date:
     return date(year, month, day)
 
 
-@router.post("/checkout")
+@router.post("/checkout", dependencies=[Depends(require_csrf)])
 async def create_checkout_session(
     user: User = Depends(require_user),
     plan: str = Body(..., embed=True),
@@ -130,7 +131,7 @@ class CancelSubscriptionRequest(BaseModel):
     reason: str
 
 
-@router.post("/cancel")
+@router.post("/cancel", dependencies=[Depends(require_csrf)])
 async def cancel_subscription(
     payload: CancelSubscriptionRequest, user: User = Depends(require_user)
 ) -> dict:
@@ -176,7 +177,7 @@ async def asaas_webhook(request: Request) -> dict:
     # Token estático configurado por nós no painel da Asaas (não é HMAC de corpo, como
     # na Stripe) — a própria Asaas devolve ele em todo webhook nesse header.
     token = request.headers.get("asaas-access-token", "")
-    if token != settings.asaas_webhook_token:
+    if not hmac.compare_digest(token, settings.asaas_webhook_token):
         raise HTTPException(401, "Token inválido.")
 
     body = await request.json()
