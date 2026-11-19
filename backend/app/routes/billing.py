@@ -75,10 +75,16 @@ async def create_checkout_session(
     if pending_same_plan:
         try:
             payments = asaas_client.get_subscription_payments(pending_same_plan)
-            if payments:
+            # Só reaproveita se ainda estiver PENDING (pagável) — como next_due_date
+            # é sempre "hoje", uma cobrança de ontem já venceu, e devolver o mesmo
+            # link devolveria um QR Code Pix morto. Vencida, trata como a antiga:
+            # cai pro fluxo abaixo, que cancela e cria uma assinatura nova.
+            if payments and payments[0].get("status") == "PENDING":
                 return {"url": payments[0]["invoiceUrl"]}
+            if payments:
+                stale_pending = pending_same_plan
         except Exception:  # noqa: BLE001
-            pass  # não existe mais do lado da Asaas (expirou, foi cancelada) — cria uma nova abaixo
+            pass  # não existe mais do lado da Asaas (foi cancelada) — cria uma nova abaixo
 
     if stale_pending:
         # Trocou de plano no meio do caminho (abriu checkout de um, voltou e tentou
