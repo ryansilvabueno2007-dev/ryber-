@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import or_
 
-from app import asaas_client
+from app import asaas_client, meta_client
 from app.auth import require_user
 from app.config import settings
 from app.db import SessionLocal
@@ -181,6 +181,16 @@ async def asaas_webhook(request: Request) -> dict:
 
     body = await request.json()
     event = body.get("event", "")
+    # Log de auditoria — todo webhook recebido, com o ID e status da cobrança/assinatura
+    # envolvida, pra poder rastrear depois o que a Asaas mandou e quando.
+    _payment_audit = body.get("payment") or {}
+    _subscription_audit = body.get("subscription") or {}
+    print(
+        f"[asaas_webhook] event={event} payment_id={_payment_audit.get('id')} "
+        f"payment_status={_payment_audit.get('status')} subscription_id="
+        f"{_payment_audit.get('subscription') or _subscription_audit.get('id')}",
+        flush=True,
+    )
 
     def _find_user(db, subscription_id: str):
         # Casa tanto com a assinatura ATUAL (renovação normal) quanto com uma
@@ -192,10 +202,11 @@ async def asaas_webhook(request: Request) -> dict:
             .first()
         )
 
-    def _confirm_payment(subscription_id: str | None, renews_at: date | None) -> None:
+    def _confirm_payment(subscription_id: str | None, renews_at: date | None, payment_id: str | None = None) -> None:
         if not subscription_id:
             return
         to_cancel = None
+        new_purchase: tuple[str, str] | None = None  # (email, plan) — só numa assinatura nova de verdade
         with SessionLocal() as db:
             db_user = _find_user(db, subscription_id)
             if db_user is None:
@@ -213,8 +224,11 @@ async def asaas_webhook(request: Request) -> dict:
                 db_user.pending_plan = None
                 db_user.plan_started_at = datetime.now(timezone.utc)
                 db_user.plan_canceled = False
+                new_purchase = (db_user.email, db_user.plan)
             # Se não bateu com pending_subscription_id, é só a renovação mensal
-            # normal da assinatura que já era a ativa — nada a promover.
+            # normal da assinatura que já era a ativa — nada a promover (e nada a
+            # mandar pro Meta: só a assinatura em si conta como Purchase, não cada
+            # cobrança recorrente mensal dela).
             db_user.is_subscribed = True
             if renews_at is not None:
                 db_user.plan_renews_at = renews_at
@@ -225,6 +239,19 @@ async def asaas_webhook(request: Request) -> dict:
                 asaas_client.cancel_subscription(to_cancel)
             except Exception:  # noqa: BLE001
                 pass
+
+        if new_purchase:
+            email, plan = new_purchase
+            # event_id = a própria cobrança (payment_id, se veio no webhook; senão a
+            # assinatura) — identificador estável pra nunca mandar duas vezes o mesmo
+            # Purchase mesmo que a Asaas reenvie a notificação (ela reenvia).
+            meta_client.send_event(
+                "Purchase",
+                event_id=f"payment_{payment_id or subscription_id}",
+                email=email,
+                value=_PLAN_PRICES.get(plan),
+                event_source_url=f"{settings.frontend_url}/billing/success",
+            )
 
     def _fail_payment(subscription_id: str | None) -> None:
         if not subscription_id:
@@ -260,7 +287,7 @@ async def asaas_webhook(request: Request) -> dict:
                 renews_at = _add_month(date.fromisoformat(due_date))
             except ValueError:
                 renews_at = None
-        _confirm_payment(payment.get("subscription"), renews_at)
+        _confirm_payment(payment.get("subscription"), renews_at, payment_id=payment.get("id"))
 
     elif event in ("PAYMENT_OVERDUE", "PAYMENT_REFUNDED", "PAYMENT_DELETED"):
         payment = body.get("payment") or {}

@@ -53,6 +53,10 @@ services:
         sync: false
       - key: REDIS_URL
         sync: false
+      - key: META_PIXEL_ID
+        sync: false
+      - key: META_CAPI_ACCESS_TOKEN
+        sync: false
 
   # Processa as análises em segundo plano (fila RQ) — separado do serviço web de
   # propósito, pra ffmpeg/Whisper não travarem/derrubarem quem está servindo HTTP.

@@ -65,5 +65,12 @@ class Settings(BaseSettings):
     # nada (dev local não precisa de conta no Sentry pra rodar).
     sentry_dsn: str = ""
 
+    # Meta Ads — mesmo Pixel ID do snippet em frontend/index.html, usado aqui só pra
+    # mandar o evento Purchase via Conversions API quando o webhook da Asaas confirma
+    # o pagamento de verdade. Sem o access_token, meta_client.send_event vira no-op.
+    meta_pixel_id: str = ""
+    meta_capi_access_token: str = ""
+    meta_test_event_code: str = ""
+
 
 settings = Settings()
