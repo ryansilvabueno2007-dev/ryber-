@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
-import { trackPixelEvent } from '../lib/metaPixel'
+import { trackPixelEvent, CHECKOUT_INTENT_KEY } from '../lib/metaPixel'
 
 export function BillingSuccess() {
   // Evita disparar duas vezes num re-render (StrictMode monta o efeito 2x em dev).
@@ -10,7 +10,24 @@ export function BillingSuccess() {
   useEffect(() => {
     if (fired.current) return
     fired.current = true
-    trackPixelEvent('Purchase')
+
+    // Só dispara Purchase se achar a intenção de checkout salva no clique de
+    // "Assinar" — remove na hora, então um refresh desta página (ou acesso direto
+    // à URL) não conta uma segunda compra pro mesmo pagamento.
+    let intent: { planId?: string; value?: number } | null = null
+    try {
+      const raw = sessionStorage.getItem(CHECKOUT_INTENT_KEY)
+      if (raw) {
+        intent = JSON.parse(raw)
+        sessionStorage.removeItem(CHECKOUT_INTENT_KEY)
+      }
+    } catch {
+      intent = null
+    }
+
+    if (intent?.value !== undefined) {
+      trackPixelEvent('Purchase', { value: intent.value, currency: 'BRL', content_name: intent.planId })
+    }
   }, [])
 
   return (

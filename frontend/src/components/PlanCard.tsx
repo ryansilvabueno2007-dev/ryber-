@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { createCheckoutSession } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { formatBRL, type Plan } from '../data/plans'
+import { trackPixelEvent, CHECKOUT_INTENT_KEY } from '../lib/metaPixel'
 
 function CheckIcon() {
   return (
@@ -31,6 +32,14 @@ export function PlanCard({ plan, highlight, features }: { plan: Plan; highlight?
     setLoading(true)
     try {
       const { url } = await createCheckoutSession(plan.id, cpfCnpj)
+      trackPixelEvent('InitiateCheckout', { value: plan.price, currency: 'BRL', content_name: plan.id })
+      // Sobrevive ao redirect pra Asaas e volta (mesma aba) — a tela de sucesso lê
+      // isso pra mandar o Purchase com o valor certo, sem precisar de nada do backend.
+      try {
+        sessionStorage.setItem(CHECKOUT_INTENT_KEY, JSON.stringify({ planId: plan.id, value: plan.price }))
+      } catch {
+        // Sem sessionStorage (modo privado, etc) — segue o fluxo normal, só sem o valor depois.
+      }
       window.location.href = url
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível abrir o checkout.')
