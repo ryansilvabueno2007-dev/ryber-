@@ -90,33 +90,37 @@ Acesse http://localhost:5173
 - Login é obrigatório em toda a plataforma. Cadastro é aberto (sem código de convite); pra criar um usuário
   direto por linha de comando (ex: admin local): `python scripts/create_user.py <email> <senha>` (dentro de
   `backend/`, venv ativo).
-- Banco de dados real (SQLite local, Postgres em produção) via SQLAlchemy + Alembic — cada análise é uma linha
-  na tabela `analyses`, vinculada ao `user_id` do dono. Os vídeos e frames extraídos continuam em disco
-  (`backend/data/uploads/`, `backend/data/raw/`), não no banco.
+- Banco de dados real (SQLite local, Postgres via Supabase em produção) via SQLAlchemy + Alembic — cada
+  análise é uma linha na tabela `analyses`, vinculada ao `user_id` do dono. Os vídeos e frames extraídos
+  ficam no disco local (`backend/data/uploads/`, `backend/data/raw/`) em dev, e na Cloudflare R2 em
+  produção — não no banco.
 - O primeiro carregamento do modelo Whisper local baixa os pesos automaticamente (uma vez só).
-- Colar um link (YouTube, TikTok, Instagram etc.) usa `yt-dlp` para baixar o vídeo antes de processar.
-- Frontend e backend são independentes e falam por HTTP — dá para publicar o backend (Render/Railway) e o
-  frontend (Vercel) separadamente mais adiante, só ajustando `VITE_API_BASE_URL` e `CORS_ORIGIN`.
+- Colar um link (Instagram, Facebook/fb.watch, TikTok) usa `yt-dlp` para baixar o vídeo antes de processar
+  — outros domínios são recusados antes mesmo de tentar.
+- Frontend e backend são independentes e falam por HTTP, hoje como subdomínio do mesmo domínio
+  (`www.ryber.com.br` e `api.ryber.com.br`), só ajustando `VITE_API_BASE_URL` e `CORS_ORIGIN` pra apontar
+  pros domínios certos.
 
 ## Deploy
 
-Produção está dividida em: **frontend na Vercel** (`https://ryber.vercel.app`, `frontend/vercel.json`
-faz o rewrite de SPA) e **backend no Render** (`render.yaml`, Docker, ainda no Postgres do próprio Render
-por enquanto — migração pra Supabase + Redis do Upstash + storage no Cloudflare R2 está em andamento, ver
-plano de arquitetura).
+Produção está dividida em: **frontend na Vercel** (`https://www.ryber.com.br`, `frontend/vercel.json`
+faz o rewrite de SPA) e **backend no Render** (`render.yaml`, Docker, domínio próprio
+`https://api.ryber.com.br` — essencial pro cookie de sessão/CSRF serem tratados como "mesmo site" no
+Safari/iOS, que bloqueia cookie de domínio diferente do frontend por padrão).
+
+Banco de dados (Supabase Postgres), fila (Redis do Upstash) e armazenamento de vídeo/imagem (Cloudflare
+R2) já estão todos migrados pra fora do Render — não depende mais do Postgres/disco do próprio Render.
 
 1. Frontend: projeto na Vercel com **Root Directory = `frontend`**, framework Vite (detecta sozinho), env
-   var `VITE_API_BASE_URL` apontando pro backend do Render.
+   var `VITE_API_BASE_URL` apontando pro domínio próprio do backend (`https://api.ryber.com.br`).
 2. Backend: Blueprint do Render lendo `render.yaml`, com as variáveis `sync: false` preenchidas manualmente
-   no painel (API keys, `CORS_ORIGIN`/`FRONTEND_URL` com a URL da Vercel, Stripe, etc.) — nunca vão pro
-   repositório.
-3. Stripe: conta de teste em [dashboard.stripe.com](https://dashboard.stripe.com) pra pegar
-   `STRIPE_SECRET_KEY`, os `STRIPE_PRICE_ID_*` de cada plano, e configurar o webhook (`STRIPE_WEBHOOK_SECRET`)
-   apontando pra `https://<seu-backend>.onrender.com/api/billing/webhook`.
-
-**Lembrete crítico:** o Postgres gratuito do Render é apagado automaticamente após 30 dias (ou até a migração
-pro Supabase terminar). Sem disco persistente, os vídeos brutos também podem se perder a qualquer reinício do
-serviço enquanto ainda estiver no tier gratuito.
+   no painel (API keys, `CORS_ORIGIN`/`FRONTEND_URL` com a URL da Vercel, Asaas, Meta, etc.) — nunca vão pro
+   repositório. Domínio customizado configurado em Settings → Custom Domains, com um CNAME no DNS do
+   `ryber.com.br` apontando pro domínio padrão do Render.
+3. Asaas: conta em [asaas.com](https://www.asaas.com) pra pegar `ASAAS_API_KEY`, e configurar o webhook
+   (Integrações → Webhooks, com `ASAAS_WEBHOOK_TOKEN` escolhido por você) apontando pra
+   `https://api.ryber.com.br/api/billing/webhook` — **fica desativável no painel deles sem aviso**, vale
+   checar de vez em quando se continua ativo.
 
 ## Construindo sua própria IA (dados de treino)
 
