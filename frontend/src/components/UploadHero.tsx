@@ -153,7 +153,7 @@ export function UploadHero({ onSubmit }: Props) {
                   <div className="relative text-xl font-medium mb-1.5 text-ink tracking-tight">
                     Arraste um vídeo ou imagem
                   </div>
-                  <p className="relative text-ink-soft text-sm mb-6">ou escolha um arquivo do seu computador</p>
+                  <p className="relative text-ink-soft text-sm mb-6">ou escolha um arquivo do seu dispositivo</p>
                   <motion.button
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
