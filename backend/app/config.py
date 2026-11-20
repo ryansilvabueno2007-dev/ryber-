@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     session_cookie_name: str = "ryber_session"
     session_ttl_days: int = 30
     session_cookie_secure: bool = True
+    # Domínio do cookie CSRF (ex: "ryber.com.br") — precisa ser o domínio PAI compartilhado
+    # entre frontend e backend (que ficam em subdomínios diferentes, www. e api.), senão o
+    # JS do frontend nunca consegue ler esse cookie via document.cookie pra ecoar no header
+    # (cookie de um subdomínio não é visível pro JS de outro, mesmo sendo "mesmo site").
+    # Vazio em dev (localhost não tem domínio pai de verdade pra isso fazer sentido).
+    csrf_cookie_domain: str = ""
 
     # E-mails (separados por vírgula) promovidos a admin automaticamente na
     # inicialização — permite dar acesso de admin sem precisar de shell no servidor.

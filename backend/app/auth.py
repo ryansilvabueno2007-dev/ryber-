@@ -123,7 +123,13 @@ def set_csrf_cookie(response: Response, token: str) -> None:
     muda estado, e require_csrf() confere que os dois batem. Um site malicioso consegue
     fazer o navegador da vítima *enviar* o cookie de sessão automaticamente, mas não
     consegue *ler* este cookie (bloqueado pela mesma-origem) pra montar o header —
-    por isso a checagem prova que a requisição partiu do próprio frontend da Ryber."""
+    por isso a checagem prova que a requisição partiu do próprio frontend da Ryber.
+
+    domain=settings.csrf_cookie_domain (ex: "ryber.com.br") é essencial em produção:
+    sem isso, o cookie fica preso ao host exato que o emitiu (api.ryber.com.br), e o
+    JS do frontend (em www.ryber.com.br) nunca consegue ler via document.cookie —
+    cookie de subdomínio não é visível pro JS de outro subdomínio, só o domínio pai
+    compartilhado resolve isso."""
     response.set_cookie(
         key=CSRF_COOKIE_NAME,
         value=token,
@@ -132,6 +138,7 @@ def set_csrf_cookie(response: Response, token: str) -> None:
         samesite="none" if settings.session_cookie_secure else "lax",
         max_age=settings.session_ttl_days * 24 * 3600,
         path="/",
+        domain=settings.csrf_cookie_domain or None,
     )
 
 

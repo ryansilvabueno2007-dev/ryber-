@@ -201,7 +201,14 @@ async def signup(
     db.commit()
     db.refresh(user)
 
-    await _send_verification_email(db, user)
+    try:
+        await _send_verification_email(db, user)
+    except Exception:  # noqa: BLE001
+        # A conta já existe de verdade nesse ponto (commit já rodou) — um e-mail que
+        # falha (Resend fora do ar, limite diário, endereço estranho) não pode derrubar
+        # o cadastro inteiro nem deixar a pessoa sem sessão. Pior caso: ela não recebe
+        # o link de verificação agora, mas pode pedir de novo em /resend-verification.
+        pass
 
     token = auth.create_session(db, user)
     _set_session_cookie(response, token)
@@ -281,12 +288,17 @@ async def forgot_password(
     if user is not None:
         token = auth.create_password_reset_token(db, user)
         reset_link = f"{settings.frontend_url}/redefinir-senha?token={token}"
-        await run_in_threadpool(
-            email_client.send_email,
-            to=user.email,
-            subject="Redefinir sua senha na Ryber",
-            html=_password_reset_email_html(user.name, reset_link),
-        )
+        try:
+            await run_in_threadpool(
+                email_client.send_email,
+                to=user.email,
+                subject="Redefinir sua senha na Ryber",
+                html=_password_reset_email_html(user.name, reset_link),
+            )
+        except Exception:  # noqa: BLE001
+            # Não propaga: um 500 aqui (vs. 200 quando a conta não existe) já vazaria
+            # a mesma informação que o "sempre responde igual" acima tenta esconder.
+            pass
     return {"status": "ok"}
 
 
@@ -330,7 +342,10 @@ async def resend_verification(
 ) -> dict:
     if user.email_verified_at is not None:
         raise HTTPException(400, "Esse e-mail já está confirmado.")
-    await _send_verification_email(db, user)
+    try:
+        await _send_verification_email(db, user)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(502, "Não foi possível enviar o e-mail agora. Tente de novo em instantes.") from exc
     return {"status": "ok"}
 
 
@@ -367,7 +382,7 @@ async def delete_account(
     db.commit()
 
     response.delete_cookie(settings.session_cookie_name, path="/")
-    response.delete_cookie(auth.CSRF_COOKIE_NAME, path="/")
+    response.delete_cookie(auth.CSRF_COOKIE_NAME, path="/", domain=settings.csrf_cookie_domain or None)
     return {"status": "ok"}
 
 
@@ -380,7 +395,7 @@ async def logout(
     if token:
         auth.destroy_session(db, token)
     response.delete_cookie(settings.session_cookie_name, path="/")
-    response.delete_cookie(auth.CSRF_COOKIE_NAME, path="/")
+    response.delete_cookie(auth.CSRF_COOKIE_NAME, path="/", domain=settings.csrf_cookie_domain or None)
     return {"status": "ok"}
 
 
