@@ -385,9 +385,17 @@ async def logout(
 
 
 @router.get("/me", response_model=UserResponse)
-async def me(response: Response, user: User = Depends(auth.require_user)) -> UserResponse:
-    # Garante o cookie CSRF pra sessões que já existiam antes dessa proteção existir
-    # (criadas num login anterior ao deploy) — /me é chamado a cada carregamento da
-    # página autenticada, então a sessão se "autocura" sem precisar deslogar/logar de novo.
-    auth.set_csrf_cookie(response, auth.create_csrf_token())
+async def me(
+    response: Response,
+    user: User = Depends(auth.require_user),
+    csrf_cookie: str | None = Cookie(default=None, alias=auth.CSRF_COOKIE_NAME),
+) -> UserResponse:
+    # Só gera um cookie CSRF novo se a pessoa ainda não tiver nenhum (sessão criada
+    # antes dessa proteção existir) — /me é chamado a cada carregamento de página, e
+    # trocar um token que já é válido toda vez abre uma corrida: se a pessoa envia um
+    # formulário bem na hora que a página termina de carregar, o header pode levar o
+    # token antigo (lido um instante antes) enquanto o cookie já virou o novo, e os
+    # dois não batem — bloqueando a ação à toa.
+    if not csrf_cookie:
+        auth.set_csrf_cookie(response, auth.create_csrf_token())
     return _to_user_response(user)
