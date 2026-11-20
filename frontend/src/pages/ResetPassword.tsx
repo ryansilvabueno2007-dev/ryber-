@@ -67,15 +67,21 @@ export function ResetPassword() {
 
       <div className="flex-1 flex items-center justify-center px-6 py-16">
         <div className="w-full max-w-sm space-y-5">
-          <div className="lg:hidden flex items-center gap-2 mb-4">
+          <Link to="/" className="lg:hidden flex items-center gap-2 mb-4 w-fit">
             <img src="/logo-mark.png" alt="" className="h-7 w-7" />
             <span className="font-semibold tracking-tight text-ink">Ryber</span>
-          </div>
+          </Link>
 
           {done ? (
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-4">
               <div className="text-2xl font-semibold tracking-tight text-ink">Senha redefinida!</div>
               <p className="text-sm text-ink-soft">Redirecionando para o login...</p>
+              <Link
+                to="/login"
+                className="inline-block w-full rounded-full bg-accent text-white px-6 py-3.5 font-medium shadow-glow hover:bg-accent-strong transition-colors"
+              >
+                Ir para o login agora
+              </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">

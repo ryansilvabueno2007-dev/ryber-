@@ -32,10 +32,10 @@ export function Login() {
 
       <div className="flex-1 flex items-center justify-center px-6 py-16">
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5">
-          <div className="lg:hidden flex items-center gap-2 mb-4">
+          <Link to="/" className="lg:hidden flex items-center gap-2 mb-4 w-fit">
             <img src="/logo-mark.png" alt="" className="h-7 w-7" />
             <span className="font-semibold tracking-tight text-ink">Ryber</span>
-          </div>
+          </Link>
           <div>
             <div className="text-2xl font-semibold tracking-tight text-ink">Entrar</div>
             <p className="text-sm text-ink-soft mt-1">Acesse sua conta pra continuar analisando.</p>
